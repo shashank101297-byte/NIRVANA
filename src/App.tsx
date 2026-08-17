@@ -1,121 +1,166 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { useEffect, useState } from 'react'
+import type { Session } from '@supabase/supabase-js'
+import { supabase } from './lib/supabase'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [signingIn, setSigningIn] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!mounted) return
+
+      if (error) {
+        setError(error.message)
+      }
+
+      setSession(data.session)
+      setLoading(false)
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession)
+    })
+
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  async function handleSignIn(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    setError('')
+    setSigningIn(true)
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    })
+
+    if (error) {
+      setError(error.message)
+    } else {
+      setSession(data.session)
+    }
+
+    setSigningIn(false)
+  }
+
+  async function handleSignOut() {
+    setError('')
+
+    const { error } = await supabase.auth.signOut()
+
+    if (error) {
+      setError(error.message)
+    }
+  }
+
+  if (loading) {
+    return (
+      <main className="nirvana-screen">
+        <div className="nirvana-card">
+          <div className="nirvana-mark">N</div>
+          <h1>NIRVANA</h1>
+          <p>Initializing secure session...</p>
+        </div>
+      </main>
+    )
+  }
+
+  if (!session) {
+    return (
+      <main className="nirvana-screen">
+        <section className="nirvana-card">
+          <div className="nirvana-mark">N</div>
+
+          <h1>NIRVANA</h1>
+          <p className="nirvana-subtitle">
+            Integrated Healthcare Platform
+          </p>
+
+          <form onSubmit={handleSignIn} className="nirvana-form">
+            <label htmlFor="email">Email</label>
+
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="Enter your email"
+              autoComplete="email"
+              required
+            />
+
+            <label htmlFor="password">Password</label>
+
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Enter your password"
+              autoComplete="current-password"
+              required
+            />
+
+            {error && (
+              <div className="nirvana-error" role="alert">
+                {error}
+              </div>
+            )}
+
+            <button type="submit" disabled={signingIn}>
+              {signingIn ? 'Signing in...' : 'Sign in'}
+            </button>
+          </form>
+
+          <p className="nirvana-security">
+            🔐 Secure authentication powered by Supabase
+          </p>
+        </section>
+      </main>
+    )
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <main className="nirvana-screen">
+      <section className="nirvana-card">
+        <div className="nirvana-mark">N</div>
+
+        <h1>Welcome to NIRVANA</h1>
+
+        <p className="nirvana-subtitle">
+          Secure session established.
+        </p>
+
+        <div className="nirvana-user">
+          <span>Authenticated user</span>
+          <strong>{session.user.email}</strong>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
+
+        {error && (
+          <div className="nirvana-error" role="alert">
+            {error}
+          </div>
+        )}
+
+        <button onClick={handleSignOut}>
+          Sign out
         </button>
       </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    </main>
   )
 }
 
