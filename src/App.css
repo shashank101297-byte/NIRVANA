@@ -1,92 +1,114 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
 #root {
   min-height: 100vh;
 }
 
-.nirvana-screen {
+.nirvana-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
-  box-sizing: border-box;
-  background: #f4f7f5;
+  background: #f3f7f5;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #163d32;
 }
 
 .nirvana-card {
-  width: min(100%, 420px);
-  box-sizing: border-box;
-  padding: 36px 28px;
-  border-radius: 20px;
+  width: 100%;
+  max-width: 520px;
   background: #ffffff;
-  box-shadow: 0 12px 40px rgba(20, 40, 30, 0.10);
+  border-radius: 24px;
+  padding: 48px 42px;
+  box-shadow: 0 18px 50px rgba(22, 61, 50, 0.10);
+}
+
+.nirvana-brand {
   text-align: center;
+  margin-bottom: 42px;
 }
 
 .nirvana-mark {
-  width: 58px;
-  height: 58px;
-  margin: 0 auto 18px;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 20px;
+  border-radius: 20px;
+  background: #164c3e;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 16px;
-  background: #163d32;
-  color: #ffffff;
-  font-size: 28px;
+  font-size: 36px;
   font-weight: 700;
 }
 
-.nirvana-card h1 {
+.nirvana-brand h1 {
   margin: 0;
-  color: #163d32;
-  font-size: 28px;
+  color: #164c3e;
+  font-size: 36px;
+  line-height: 1.15;
+  font-weight: 750;
+  letter-spacing: -1px;
 }
 
-.nirvana-subtitle {
-  margin: 8px 0 28px;
-  color: #64756f;
+.nirvana-brand p {
+  margin: 10px 0 0;
+  color: #718079;
+  font-size: 18px;
 }
 
 .nirvana-form {
   display: flex;
   flex-direction: column;
-  text-align: left;
-  gap: 9px;
+  gap: 12px;
 }
 
 .nirvana-form label {
+  display: block;
   margin-top: 8px;
-  color: #34453f;
-  font-size: 14px;
-  font-weight: 600;
+  color: #263f37;
+  font-size: 15px;
+  font-weight: 650;
 }
 
 .nirvana-form input {
   width: 100%;
-  box-sizing: border-box;
-  padding: 13px 14px;
-  border: 1px solid #ccd7d2;
-  border-radius: 10px;
+  min-height: 56px;
+  padding: 0 16px;
+  border: 1px solid #d4ddd9;
+  border-radius: 12px;
   background: #ffffff;
+  color: #182823;
+  font: inherit;
   font-size: 16px;
   outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .nirvana-form input:focus {
-  border-color: #3d7564;
+  border-color: #164c3e;
+  box-shadow: 0 0 0 3px rgba(22, 76, 62, 0.10);
 }
 
 .nirvana-form button,
 .nirvana-card > button {
   width: 100%;
+  min-height: 58px;
   margin-top: 18px;
-  padding: 14px;
   border: 0;
-  border-radius: 10px;
-  background: #163d32;
+  border-radius: 12px;
+  background: #164c3e;
   color: #ffffff;
-  font-size: 16px;
-  font-weight: 600;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -95,37 +117,981 @@
   cursor: not-allowed;
 }
 
-.nirvana-error {
-  margin-top: 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: #fff0f0;
-  color: #a32929;
+.nirvana-secure {
+  margin: 28px 0 0;
+  text-align: center;
+  color: #7a8781;
   font-size: 14px;
-  text-align: left;
 }
 
-.nirvana-security {
-  margin: 24px 0 0;
-  color: #718079;
-  font-size: 12px;
+.nirvana-error {
+  margin-top: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fff1f1;
+  color: #a52a2a;
+  font-size: 14px;
 }
 
 .nirvana-user {
-  margin: 24px 0;
-  padding: 16px;
-  border-radius: 12px;
+  margin: 28px 0;
+  padding: 20px;
+  border-radius: 14px;
   background: #f4f7f5;
+  text-align: center;
 }
 
 .nirvana-user span {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   color: #718079;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .nirvana-user strong {
   color: #163d32;
+  font-size: 17px;
   word-break: break-word;
+}
+
+@media (max-width: 600px) {
+  .nirvana-page {
+    padding: 16px;
+    align-items: flex-start;
+  }
+
+  .nirvana-card {
+    margin-top: 24px;
+    padding: 36px 24px;
+    border-radius: 20px;
+  }
+
+  .nirvana-mark {
+    width: 64px;
+    height: 64px;
+    font-size: 32px;
+  }
+
+  .nirvana-brand h1 {
+    font-size: 32px;
+  }
+
+  .nirvana-brand p {
+    font-size: 16px;
+  }
+}
+
+/* NIRVANA authentication page */
+.auth-page {
+  min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: #f4f7f5;
+}
+
+.auth-card {
+  width: min(100%, 520px);
+  box-sizing: border-box;
+  padding: 42px 36px 34px;
+  background: #ffffff;
+  border: 1px solid #e2e8e5;
+  border-radius: 24px;
+  box-shadow: 0 18px 50px rgba(20, 55, 45, 0.10);
+  text-align: center;
+}
+
+.auth-card .brand-mark {
+  width: 78px;
+  height: 78px;
+  margin: 0 auto 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 22px;
+  background: #163d32;
+  color: #ffffff;
+  font-size: 42px;
+  font-weight: 700;
+}
+
+.auth-card h1 {
+  margin: 0;
+  color: #163d32;
+  font-size: 42px;
+  line-height: 1.1;
+  letter-spacing: -1px;
+}
+
+.auth-card .subtitle {
+  margin: 14px 0 34px;
+  color: #718079;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.auth-form label {
+  margin-top: 8px;
+  color: #263b34;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.auth-form input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 54px;
+  padding: 14px 16px;
+  border: 1px solid #d4dfda;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #163d32;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.auth-form input:focus {
+  border-color: #163d32;
+  box-shadow: 0 0 0 3px rgba(22, 61, 50, 0.10);
+}
+
+.auth-form button {
+  width: 100%;
+  min-height: 54px;
+  margin-top: 12px;
+  border: 0;
+  border-radius: 12px;
+  background: #163d32;
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.auth-form button:hover {
+  background: #0f3027;
+}
+
+.auth-form button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.nirvana-error {
+  margin: 8px 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fff1f0;
+  color: #a33a32;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.security-note {
+  margin: 24px 0 0;
+  color: #718079;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .auth-page {
+    padding: 16px 12px;
+    align-items: center;
+  }
+
+  .auth-card {
+    padding: 32px 22px 28px;
+    border-radius: 20px;
+  }
+
+  .auth-card .brand-mark {
+    width: 68px;
+    height: 68px;
+    border-radius: 19px;
+    font-size: 36px;
+  }
+
+  .auth-card h1 {
+    font-size: 34px;
+  }
+
+  .auth-card .subtitle {
+    font-size: 16px;
+    margin-bottom: 26px;
+  }
+}
+
+
+/* =========================================================
+   NIRVANA FOUNDATION V1 — AUTHENTICATED APP SHELL
+   ========================================================= */
+
+.app-shell {
+  min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+  background: #f4f7f5;
+  color: #163d32;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  min-height: 72px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #e1e9e5;
+  backdrop-filter: blur(12px);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #163d32;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.brand-mark-small {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: #163d32;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #718079;
+  font-size: 14px;
+}
+
+.signout-button {
+  border: 1px solid #d5e0dc;
+  border-radius: 9px;
+  padding: 9px 14px;
+  background: #ffffff;
+  color: #163d32;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.signout-button:hover {
+  background: #f0f5f2;
+}
+
+.content {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 42px 0 100px;
+  box-sizing: border-box;
+}
+
+.content > .page {
+  width: 100%;
+}
+
+.welcome {
+  margin-bottom: 34px;
+  text-align: center;
+}
+
+.welcome .eyebrow {
+  margin: 0 0 10px;
+  color: #718079;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.welcome h1 {
+  margin: 0;
+  color: #163d32;
+  font-size: clamp(34px, 6vw, 54px);
+  line-height: 1.08;
+  letter-spacing: -1.5px;
+}
+
+.welcome p:not(.eyebrow) {
+  margin: 14px 0 0;
+  color: #718079;
+  font-size: 18px;
+}
+
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.module-card {
+  display: block;
+  min-height: 170px;
+  padding: 26px;
+  box-sizing: border-box;
+  border: 1px solid #dfe8e4;
+  border-radius: 18px;
+  background: #ffffff;
+  color: #163d32;
+  text-decoration: none;
+  box-shadow: 0 8px 26px rgba(20, 55, 45, 0.06);
+  transition: transform 0.18s ease, box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.module-card:hover {
+  transform: translateY(-2px);
+  border-color: #b9cec5;
+  box-shadow: 0 14px 34px rgba(20, 55, 45, 0.10);
+}
+
+.module-icon {
+  display: block;
+  margin-bottom: 16px;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.module-card h2 {
+  margin: 0 0 8px;
+  color: #163d32;
+  font-size: 22px;
+}
+
+.module-card p {
+  margin: 0;
+  color: #718079;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.account-card {
+  margin-top: 28px;
+  padding: 20px 22px;
+  border: 1px solid #dfe8e4;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 6px 20px rgba(20, 55, 45, 0.05);
+}
+
+.account-card span {
+  display: block;
+  margin-bottom: 7px;
+  color: #718079;
+  font-size: 13px;
+}
+
+.account-card strong {
+  color: #163d32;
+  word-break: break-word;
+}
+
+.bottom-nav {
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  z-index: 30;
+  transform: translateX(-50%);
+  width: min(520px, calc(100% - 24px));
+  padding: 10px;
+  display: flex;
+  justify-content: space-around;
+  box-sizing: border-box;
+  border: 1px solid #dfe8e4;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 12px 35px rgba(20, 55, 45, 0.12);
+  backdrop-filter: blur(12px);
+}
+
+.bottom-nav a {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: 10px;
+  color: #52665e;
+  text-align: center;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.bottom-nav a:hover,
+.bottom-nav a.active {
+  background: #edf4f1;
+  color: #163d32;
+}
+
+@media (max-width: 700px) {
+  .topbar {
+    min-height: 64px;
+    padding: 0 14px;
+  }
+
+  .brand {
+    font-size: 16px;
+  }
+
+  .brand-mark-small {
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+  }
+
+  .topbar-user {
+    gap: 7px;
+    font-size: 12px;
+  }
+
+  .topbar-user > span {
+    display: none;
+  }
+
+  .content {
+    width: min(100% - 24px, 600px);
+    padding-top: 30px;
+  }
+
+  .module-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .module-card {
+    min-height: 145px;
+    padding: 22px;
+  }
+
+  .welcome h1 {
+    font-size: 38px;
+  }
+
+  .welcome p:not(.eyebrow) {
+    font-size: 16px;
+  }
+}
+
+
+/* NIRVANA module card typography */
+.module-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.module-card .module-icon {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.module-card strong {
+  display: block;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.module-card > span:not(.module-icon) {
+  display: block;
+  font-size: 15px;
+  line-height: 1.4;
+  color: #718079;
+}
+
+
+/* ================================
+   NIRVANA PATIENT REGISTRY
+   Foundation V1
+   ================================ */
+
+.patients-page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 42px 28px 120px;
+}
+
+.patients-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.patients-header h1 {
+  margin: 4px 0 10px;
+}
+
+.page-description {
+  margin: 0;
+  color: #718079;
+  font-size: 16px;
+}
+
+.primary-button,
+.secondary-button {
+  border: 0;
+  border-radius: 12px;
+  padding: 13px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary-button {
+  background: #163d32;
+  color: white;
+}
+
+.secondary-button {
+  background: #eef3f1;
+  color: #163d32;
+}
+
+.patient-toolbar,
+.patient-form-card,
+.patients-list-card {
+  background: white;
+  border: 1px solid #dfe8e4;
+  border-radius: 18px;
+  box-shadow: 0 8px 28px rgba(22, 61, 50, 0.06);
+}
+
+.patient-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px;
+  margin-bottom: 24px;
+}
+
+.patient-search {
+  flex: 1;
+}
+
+.patient-search label,
+.form-field label {
+  display: block;
+  margin-bottom: 8px;
+  color: #36554b;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.patient-search input,
+.form-field input,
+.form-field select {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ccd9d4;
+  border-radius: 10px;
+  padding: 13px 14px;
+  background: white;
+  color: #163d32;
+  font-size: 15px;
+}
+
+.patient-count {
+  min-width: 130px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: #f4f7f5;
+  text-align: center;
+}
+
+.patient-count span {
+  display: block;
+  color: #718079;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+
+.patient-count strong {
+  color: #163d32;
+  font-size: 24px;
+}
+
+.patient-form-card,
+.patients-list-card {
+  padding: 26px;
+  margin-bottom: 24px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.section-heading h2 {
+  margin: 3px 0 0;
+  color: #163d32;
+}
+
+.patient-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.empty-patients {
+  padding: 55px 20px;
+  text-align: center;
+  border: 1px dashed #ccd9d4;
+  border-radius: 14px;
+  background: #fafcfb;
+}
+
+.empty-icon {
+  font-size: 38px;
+  margin-bottom: 12px;
+}
+
+.empty-patients h3 {
+  margin: 0 0 8px;
+  color: #163d32;
+}
+
+.empty-patients p {
+  margin: 0 0 20px;
+  color: #718079;
+}
+
+.patients-table-wrap {
+  overflow-x: auto;
+}
+
+.patients-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.patients-table th,
+.patients-table td {
+  padding: 15px 14px;
+  text-align: left;
+  border-bottom: 1px solid #e5ece9;
+}
+
+.patients-table th {
+  color: #718079;
+  background: #f7f9f8;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.patients-table td {
+  color: #36554b;
+}
+
+.patients-table td strong {
+  color: #163d32;
+}
+
+.development-note {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: #eef5f2;
+  color: #718079;
+  font-size: 13px;
+}
+
+.development-note strong {
+  color: #163d32;
+}
+
+@media (max-width: 760px) {
+  .patients-page {
+    padding: 28px 16px 100px;
+  }
+
+  .patients-header,
+  .patient-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .patient-form {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    grid-column: auto;
+  }
+
+  .primary-button {
+    width: 100%;
+  }
+}
+
+.form-field-wide {
+  grid-column: 1 / -1;
+}
+
+.form-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ccd9d4;
+  border-radius: 10px;
+  padding: 13px 14px;
+  background: white;
+  color: #163d32;
+  font-size: 15px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.form-field textarea:focus,
+.form-field input:focus,
+.form-field select:focus {
+  outline: none;
+  border-color: #163d32;
+  box-shadow: 0 0 0 3px rgba(22, 61, 50, 0.08);
+}
+
+@media (max-width: 760px) {
+  .form-field-wide {
+    grid-column: auto;
+  }
+}
+
+/* Patient detail information grid */
+.patient-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 32px;
+  margin-top: 24px;
+}
+
+.patient-detail-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 18px;
+  border: 1px solid #e7ece9;
+  border-radius: 12px;
+  background: #fafcfb;
+}
+
+.patient-detail-grid span {
+  font-size: 0.9rem;
+  color: #7a8782;
+}
+
+.patient-detail-grid strong {
+  font-size: 1.05rem;
+  color: #173f35;
+  font-weight: 600;
+}
+
+@media (max-width: 700px) {
+  .patient-detail-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+/* Patient detail actions */
+.patient-detail-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.edit-patient-button,
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border-radius: 10px;
+  padding: 11px 18px;
+  font-weight: 600;
+}
+
+.edit-patient-button {
+  background: #164c40;
+  color: white;
+}
+
+.secondary-button {
+  border: 1px solid #d7dfdc;
+  color: #24463e;
+  background: white;
+}
+
+.edit-patient-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.edit-patient-header h2 {
+  margin-bottom: 6px;
+}
+
+.edit-patient-header p {
+  margin: 0;
+}
+
+.patient-code-badge {
+  padding: 9px 13px;
+  border-radius: 9px;
+  background: #f0f5f2;
+  color: #164c40;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.patient-edit-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 24px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.form-field-full {
+  grid-column: 1 / -1;
+}
+
+.form-field label {
+  font-weight: 600;
+  color: #36534b;
+}
+
+.form-field input,
+.form-field select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #d8e1dd;
+  border-radius: 10px;
+  background: white;
+  font: inherit;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  outline: 2px solid #b7d1c8;
+  border-color: #164c40;
+}
+
+.edit-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 12px;
+}
+
+.edit-form-actions button {
+  border: 0;
+  border-radius: 10px;
+  padding: 11px 20px;
+  background: #164c40;
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.edit-form-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.nirvana-success {
+  margin-bottom: 20px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #edf7f1;
+  color: #17613e;
+  border: 1px solid #c9e6d5;
+}
+
+@media (max-width: 700px) {
+  .patient-detail-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .edit-patient-button {
+    width: 100%;
+  }
+
+  .edit-patient-header {
+    flex-direction: column;
+  }
+
+  .patient-edit-form {
+    grid-template-columns: 1fr;
+  }
+
+  .form-field-full {
+    grid-column: auto;
+  }
+
+  .edit-form-actions {
+    grid-column: auto;
+    flex-direction: column-reverse;
+  }
+
+  .edit-form-actions button,
+  .secondary-button {
+    width: 100%;
+  }
 }
