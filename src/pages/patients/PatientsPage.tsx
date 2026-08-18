@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { NavLink } from 'react-router-dom'
+import { useOrganization } from '../../context/OrganizationContext'
 
 type Patient = {
   id: string
@@ -18,13 +19,6 @@ type Patient = {
   created_at: string
 }
 
-type ActiveOrganization = {
-  id: string
-  name: string
-  code: string
-  status: string
-}
-
 export default function PatientsPage() {
   const [patients, setPatients] = useState<Patient[]>([])
   const [search, setSearch] = useState('')
@@ -32,7 +26,11 @@ export default function PatientsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const [activeOrganization, setActiveOrganization] = useState<ActiveOrganization | null>(null)
+  const {
+    activeOrganization,
+    activeOrganizationId,
+    error: organizationError,
+  } = useOrganization()
 
   const [name, setName] = useState('')
   const [age, setAge] = useState('')
@@ -65,43 +63,8 @@ export default function PatientsPage() {
     setLoading(false)
   }
 
-  async function loadActiveOrganization() {
-    const { data: userData, error: userError } = await supabase.auth.getUser()
-
-    if (userError || !userData.user) {
-      setActiveOrganization(null)
-      setError(userError?.message ?? 'Unable to determine the authenticated user.')
-      return null
-    }
-
-    const { data, error } = await supabase
-      .from('organization_memberships')
-      .select('organization_id, organizations(id, name, code, status)')
-      .eq('user_id', userData.user.id)
-      .eq('status', 'active')
-      .maybeSingle()
-
-    if (error) {
-      setActiveOrganization(null)
-      setError(error.message)
-      return null
-    }
-
-    const organization = data?.organizations as ActiveOrganization | null | undefined
-
-    if (!organization) {
-      setActiveOrganization(null)
-      setError('No active organization is assigned to your account.')
-      return null
-    }
-
-    setActiveOrganization(organization)
-    return { user: userData.user, organization }
-  }
-
   useEffect(() => {
     void loadPatients()
-    void loadActiveOrganization()
   }, [])
 
   const filteredPatients = useMemo(() => {
@@ -156,16 +119,21 @@ export default function PatientsPage() {
       return
     }
 
-    const organizationResult = await loadActiveOrganization()
-
-    if (!organizationResult) {
+    if (!activeOrganizationId) {
+      setError('No active organization is available for patient creation.')
       setSaving(false)
       return
     }
 
-    const { user, organization } = organizationResult
-
     setSaving(true)
+
+    const { data: userData, error: userError } = await supabase.auth.getUser()
+
+    if (userError || !userData.user) {
+      setError(userError?.message ?? 'Unable to determine the authenticated user.')
+      setSaving(false)
+      return
+    }
 
     const { data, error } = await supabase
       .from('patients')
@@ -179,8 +147,8 @@ export default function PatientsPage() {
         district: district.trim(),
         state: state.trim(),
         pincode: pincode.trim(),
-        organization_id: organization.id,
-        created_by: user.id,
+        organization_id: activeOrganizationId,
+        created_by: userData.user.id,
       })
       .select(
         'id, patient_code, full_name, age_years, sex, mobile, address, city, district, state, pincode, status, created_at',
@@ -214,12 +182,11 @@ export default function PatientsPage() {
           type="button"
           className="primary-button"
           disabled={!activeOrganization}
-          onClick={async () => {
+          onClick={() => {
             setError('')
 
-            const organizationResult = await loadActiveOrganization()
-
-            if (!organizationResult) {
+            if (!activeOrganizationId) {
+              setError('No active organization is available for patient creation.')
               setShowForm(false)
               return
             }
@@ -237,9 +204,9 @@ export default function PatientsPage() {
       </NavLink>
       </div>
 
-      {error && (
+      {(error || organizationError) && (
         <div className="nirvana-error" role="alert">
-          {error}
+          {error || organizationError}
         </div>
       )}
 

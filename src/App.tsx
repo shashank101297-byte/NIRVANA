@@ -8,6 +8,7 @@ import {
 } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
+import { OrganizationProvider, useOrganization } from './context/OrganizationContext'
 import './App.css'
 import PatientsPage from './pages/patients/PatientsPage'
 import ArchivedPatientsPage from './pages/patients/ArchivedPatientsPage'
@@ -178,6 +179,97 @@ function ProfilePage({ email }: { email: string }) {
   )
 }
 
+function OrganizationSwitcher() {
+  const {
+    organizations,
+    activeOrganization,
+    activeOrganizationId,
+    loading,
+    error,
+    setActiveOrganization,
+  } = useOrganization()
+  const [open, setOpen] = useState(false)
+
+  if (loading) {
+    return (
+      <div className="organization-switcher organization-switcher-loading">
+        <span className="organization-switcher-label">Organization</span>
+        <strong>Loading…</strong>
+      </div>
+    )
+  }
+
+  const currentOrganizationName =
+    activeOrganization?.name ?? organizations[0]?.name ?? 'No organization available'
+
+  const isSingleOrganization = organizations.length <= 1
+
+  const handleSelect = async (organizationId: string) => {
+    await setActiveOrganization(organizationId)
+    setOpen(false)
+  }
+
+  return (
+    <div className="organization-switcher-wrap">
+      <button
+        type="button"
+        className={`organization-switcher ${isSingleOrganization ? 'organization-switcher-single' : ''}`}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Current organization selection"
+        onClick={() => setOpen((previous) => !previous)}
+      >
+        <span className="organization-switcher-label">Current organization</span>
+        <span className="organization-switcher-value">
+          {currentOrganizationName}
+          <span className="organization-switcher-caret">{open ? '▴' : '▾'}</span>
+        </span>
+      </button>
+
+      {open && (
+        <div className="organization-menu" role="menu" aria-label="Organization menu">
+          {organizations.length === 0 ? (
+            <div className="organization-menu-item organization-menu-item-disabled" role="menuitem">
+              No organization access available
+            </div>
+          ) : isSingleOrganization ? (
+            <button
+              type="button"
+              className="organization-menu-item organization-menu-item-active"
+              role="menuitemradio"
+              aria-checked="true"
+              onClick={() => setOpen(false)}
+            >
+              <span>{currentOrganizationName}</span>
+              <span className="organization-menu-check">✓</span>
+            </button>
+          ) : (
+            organizations.map((organization) => (
+              <button
+                key={organization.id}
+                type="button"
+                className={`organization-menu-item ${
+                  activeOrganizationId === organization.id ? 'organization-menu-item-active' : ''
+                }`}
+                role="menuitemradio"
+                aria-checked={activeOrganizationId === organization.id}
+                onClick={() => void handleSelect(organization.id)}
+              >
+                <span>{organization.name}</span>
+                {activeOrganizationId === organization.id && (
+                  <span className="organization-menu-check">✓</span>
+                )}
+              </button>
+            ))
+          )}
+
+          {error && <div className="organization-menu-error">{error}</div>}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function ProtectedApp({
   session,
   onSignOut,
@@ -186,6 +278,27 @@ function ProtectedApp({
   onSignOut: () => Promise<void>
 }) {
   const email = session.user.email ?? 'Authenticated user'
+  const { activeOrganization, organizations, loading } = useOrganization()
+  const hasOrganizationAccess = organizations.length > 0 && !!activeOrganization
+
+  if (loading) {
+    return (
+      <div className="app-shell">
+        <header className="topbar">
+          <NavLink to="/" className="brand">
+            <span className="brand-mark-small">N</span>
+            <span>NIRVANA</span>
+          </NavLink>
+        </header>
+        <main className="content">
+          <div className="page">
+            <p className="eyebrow">ORGANIZATION</p>
+            <h1>Loading your organization access…</h1>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="app-shell">
@@ -195,94 +308,101 @@ function ProtectedApp({
           <span>NIRVANA</span>
         </NavLink>
 
-        <div className="topbar-user">
-          <span>{email}</span>
-          <button className="signout-button" onClick={onSignOut}>
-            Sign out
-          </button>
+        <div className="topbar-meta">
+          <OrganizationSwitcher />
+
+          <div className="topbar-user">
+            <span>{email}</span>
+            <button className="signout-button" onClick={onSignOut}>
+              Sign out
+            </button>
+          </div>
         </div>
       </header>
 
       <main className="content">
-        <Routes>
-          <Route path="/" element={<HomePage email={email} />} />
-      <Route
-        path="/patients"
-        element={<PatientsPage />}
-      />
-          <Route
-            path="/clinical"
-            element={
-              <ModulePage
-                title="Clinical"
-                description="Clinical tools and decision support will be built here."
-                icon="🩺"
-              />
-            }
-          />
-
-          <Route
-            path="/research"
-            element={
-              <ModulePage
-                title="Research"
-                description="Research, academics and evidence workspace."
-                icon="📚"
-              />
-            }
-          />
-
-          <Route
-            path="/profile"
-            element={<ProfilePage email={email} />}
-          />
-
-          <Route
-            path="/settings"
-            element={
-              <ModulePage
-                title="Settings"
-                description="NIRVANA platform settings will be built here."
-                icon="⚙️"
-              />
-            }
-          />
+        {!hasOrganizationAccess ? (
+          <div className="page">
+            <div className="account-card">
+              <p className="eyebrow">ORGANIZATION ACCESS</p>
+              <h1>No organization access</h1>
+              <p>
+                This account is not currently assigned to an active organization.
+                Contact your administrator to request access.
+              </p>
+              <button type="button" className="secondary-button" onClick={() => void onSignOut()}>
+                Sign out
+              </button>
+            </div>
+          </div>
+        ) : (
+          <Routes>
+            <Route path="/" element={<HomePage email={email} />} />
+            <Route path="/patients" element={<PatientsPage />} />
             <Route
-          path="/patients/:id/edit"
-          element={<EditPatientPage />}
-        />
-      <Route
-          path="/patients/archived"
-          element={<ArchivedPatientsPage />}
-        />
-        <Route
-          path="/patients/:id"
-          element={<PatientDetailPage />}
-        />
-      </Routes>
+              path="/clinical"
+              element={
+                <ModulePage
+                  title="Clinical"
+                  description="Clinical tools and decision support will be built here."
+                  icon="🩺"
+                />
+              }
+            />
+
+            <Route
+              path="/research"
+              element={
+                <ModulePage
+                  title="Research"
+                  description="Research, academics and evidence workspace."
+                  icon="📚"
+                />
+              }
+            />
+
+            <Route path="/profile" element={<ProfilePage email={email} />} />
+
+            <Route
+              path="/settings"
+              element={
+                <ModulePage
+                  title="Settings"
+                  description="NIRVANA platform settings will be built here."
+                  icon="⚙️"
+                />
+              }
+            />
+            <Route path="/patients/:id/edit" element={<EditPatientPage />} />
+            <Route path="/patients/archived" element={<ArchivedPatientsPage />} />
+            <Route path="/patients/:id" element={<PatientDetailPage />} />
+          </Routes>
+        )}
       </main>
 
-      <nav className="bottom-nav">
-        <NavLink to="/" end>
-          <span>⌂</span>
-          Home
-        </NavLink>
+      {hasOrganizationAccess && (
+        <nav className="bottom-nav">
+          <NavLink to="/" end>
+            <span>⌂</span>
+            Home
+          </NavLink>
 
-        <NavLink to="/patients">
-          <span>👥</span>
-          Patients
-        </NavLink>
+          <NavLink to="/patients">
+            <span>👥</span>
+            Patients
+          </NavLink>
 
-        <NavLink to="/clinical">
-          <span>🩺</span>
-          Clinical
-        </NavLink>
+          <NavLink to="/clinical">
+            <span>🩺</span>
+            Clinical
+          </NavLink>
 
-        <NavLink to="/profile">
-          <span>👤</span>
-          Profile
-        </NavLink>
-      </nav>
+          <NavLink to="/profile">
+            <span>👤</span>
+            Profile
+          </NavLink>
+        </nav>
+      )}
     </div>
   )
 }
@@ -337,7 +457,9 @@ function App() {
       {!session ? (
         <LoginPage />
       ) : (
-        <ProtectedApp session={session} onSignOut={handleSignOut} />
+        <OrganizationProvider>
+          <ProtectedApp session={session} onSignOut={handleSignOut} />
+        </OrganizationProvider>
       )}
     </BrowserRouter>
   )
