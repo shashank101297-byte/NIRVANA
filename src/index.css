@@ -109,3 +109,124 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* NIRVANA — Clinical Encounter History */
+.encounter-history-list {
+  width: 100%;
+  max-width: 720px;
+  margin: 12px auto 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.encounter-history-item {
+  width: 100%;
+  min-height: 40px;
+  padding: 4px 12px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+.encounter-history-number {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--text-h);
+}
+
+.encounter-history-date {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.encounter-history-item:hover {
+  background: var(--accent-bg);
+}
+
+.encounter-history-item:hover .encounter-history-date {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .encounter-history-list {
+    width: 100%;
+    gap: 6px;
+    margin-top: 14px;
+  }
+
+  .encounter-history-item {
+    min-height: 44px;
+    padding: 6px 8px;
+    gap: 10px;
+  }
+
+  .encounter-history-number {
+    flex-basis: 30px;
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
+  }
+
+  .encounter-history-date {
+    font-size: 17px;
+  }
+}
+
+/* NIRVANA - Clinical Encounter Documentation */
+
+.encounter-documentation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.encounter-documentation-grid .account-card {
+  text-align: left;
+  min-height: 90px;
+  box-sizing: border-box;
+}
+
+.encounter-documentation-grid .account-card > span {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.encounter-documentation-grid .account-card p {
+  margin: 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  text-align: left;
+}
+
+@media (max-width: 700px) {
+  .encounter-documentation-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}

@@ -147,6 +147,13 @@ export default function PatientDetailPage() {
               Edit Patient
             </NavLink>
 
+            <NavLink
+              to={`/clinical/${patient.id}`}
+              className="secondary-button"
+            >
+              Clinical Workspace
+            </NavLink>
+
             <button
               type="button"
               className="archive-patient-button"

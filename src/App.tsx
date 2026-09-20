@@ -14,6 +14,9 @@ import PatientsPage from './pages/patients/PatientsPage'
 import ArchivedPatientsPage from './pages/patients/ArchivedPatientsPage'
 import PatientDetailPage from './pages/patients/PatientDetailPage'
 import EditPatientPage from './pages/patients/EditPatientPage'
+import ClinicalWorkspacePage from './pages/clinical/ClinicalWorkspacePage'
+import ClinicalEncounterPage from './pages/clinical/ClinicalEncounterPage'
+import ClinicalEncountersPage from './pages/clinical/ClinicalEncountersPage'
 
 function LoginPage() {
   const navigate = useNavigate()
@@ -339,16 +342,16 @@ function ProtectedApp({
           <Routes>
             <Route path="/" element={<HomePage email={email} />} />
             <Route path="/patients" element={<PatientsPage />} />
-            <Route
-              path="/clinical"
-              element={
-                <ModulePage
-                  title="Clinical"
-                  description="Clinical tools and decision support will be built here."
-                  icon="🩺"
-                />
-              }
-            />
+            <Route path="/clinical" element={<ClinicalWorkspacePage />} />
+            <Route path="/clinical/:patientId" element={<ClinicalWorkspacePage />} />
+        <Route
+          path="/clinical/:patientId/encounters"
+          element={<ClinicalEncountersPage />}
+        />
+      <Route
+        path="/clinical/:patientId/encounter/:encounterId"
+        element={<ClinicalEncounterPage />}
+      />
 
             <Route
               path="/research"
