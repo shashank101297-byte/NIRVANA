@@ -28,8 +28,6 @@ type ClinicalEncounter = {
   updated_at: string
 }
 
-const encounterTypes = ['OPD', 'Follow-up', 'Emergency', 'Day Care']
-const encounterStatuses = ['Open', 'Completed', 'Cancelled']
 
 export default function ClinicalWorkspacePage() {
   const { patientId } = useParams<{ patientId: string }>()
@@ -51,6 +49,31 @@ export default function ClinicalWorkspacePage() {
   const [encounterType, setEncounterType] = useState('OPD')
   const [status, setStatus] = useState('Open')
   const [chiefComplaint, setChiefComplaint] = useState('')
+  const [historyOfPresentIllness, setHistoryOfPresentIllness] = useState('')
+  const [pastHistory, setPastHistory] = useState('')
+  const [personalHistory, setPersonalHistory] = useState('')
+  const [familyHistory, setFamilyHistory] = useState('')
+  const [drugAllergyHistory, setDrugAllergyHistory] = useState('')
+  const [examination, setExamination] = useState('')
+
+  const [prakriti, setPrakriti] = useState('')
+  const [vikriti, setVikriti] = useState('')
+  const [dosha, setDosha] = useState('')
+  const [dushya, setDushya] = useState('')
+  const [srotas, setSrotas] = useState('')
+  const [agni, setAgni] = useState('')
+  const [koshtha, setKoshtha] = useState('')
+  const [ama, setAma] = useState('')
+  const [nidana, setNidana] = useState('')
+  const [samprapti, setSamprapti] = useState('')
+  const [ayurvedicDiagnosis, setAyurvedicDiagnosis] = useState('')
+
+  const [assessment, setAssessment] = useState('')
+  const [diagnosis, setDiagnosis] = useState('')
+  const [differentialDiagnosis, setDifferentialDiagnosis] = useState('')
+  const [investigations, setInvestigations] = useState('')
+  const [treatmentPlan, setTreatmentPlan] = useState('')
+  const [followUpAdvice, setFollowUpAdvice] = useState('')
 
   const hasActiveOrganization = Boolean(activeOrganizationId && activeOrganization)
 
@@ -205,6 +228,29 @@ export default function ClinicalWorkspacePage() {
         encounter_type: encounterType,
         status,
         chief_complaint: chiefComplaint.trim(),
+        history_of_present_illness: historyOfPresentIllness.trim(),
+        past_history: pastHistory.trim(),
+        personal_history: personalHistory.trim(),
+        family_history: familyHistory.trim(),
+        drug_allergy_history: drugAllergyHistory.trim(),
+        examination: examination.trim(),
+        prakriti: prakriti.trim(),
+        vikriti: vikriti.trim(),
+        dosha: dosha.trim(),
+        dushya: dushya.trim(),
+        srotas: srotas.trim(),
+        agni: agni.trim(),
+        koshtha: koshtha.trim(),
+        ama: ama.trim(),
+        nidana: nidana.trim(),
+        samprapti: samprapti.trim(),
+        ayurvedic_diagnosis: ayurvedicDiagnosis.trim(),
+        assessment: assessment.trim(),
+        diagnosis: diagnosis.trim(),
+        differential_diagnosis: differentialDiagnosis.trim(),
+        investigations: investigations.trim(),
+        treatment_plan: treatmentPlan.trim(),
+        follow_up_advice: followUpAdvice.trim(),
       })
 
     if (insertError) {
@@ -419,62 +465,230 @@ export default function ClinicalWorkspacePage() {
               </div>
 
               <form onSubmit={handleCreateVisit} className="clinical-visit-form">
+            <section className="clinical-form-section">
+              <div className="clinical-section-header">
+                <p className="eyebrow">CLINICAL DOCUMENTATION</p>
+                <h3>History & Examination</h3>
+              </div>
+
+              <div className="form-field form-field-full">
+                <label htmlFor="history-present-illness">History of Present Illness</label>
+                <textarea
+                  id="history-present-illness"
+                  value={historyOfPresentIllness}
+                  onChange={(event) => setHistoryOfPresentIllness(event.target.value)}
+                  rows={5}
+                  placeholder="Describe onset, duration, progression, associated symptoms, aggravating/relieving factors and relevant history..."
+                />
+              </div>
+
+              <div className="form-grid">
                 <div className="form-field">
-                  <label htmlFor="visit-date">Encounter date</label>
-                  <input
-                    id="visit-date"
-                    type="date"
-                    value={encounterDate}
-                    onChange={(event) => setEncounterDate(event.target.value)}
-                    required
+                  <label htmlFor="past-history">Past History</label>
+                  <textarea
+                    id="past-history"
+                    value={pastHistory}
+                    onChange={(event) => setPastHistory(event.target.value)}
+                    rows={4}
+                    placeholder="Previous illnesses, admissions, surgeries, chronic conditions..."
                   />
                 </div>
 
                 <div className="form-field">
-                  <label htmlFor="visit-type">Encounter type</label>
-                  <select
-                    id="visit-type"
-                    value={encounterType}
-                    onChange={(event) => setEncounterType(event.target.value)}
-                    required
-                  >
-                    {encounterTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
+                  <label htmlFor="personal-history">Personal History</label>
+                  <textarea
+                    id="personal-history"
+                    value={personalHistory}
+                    onChange={(event) => setPersonalHistory(event.target.value)}
+                    rows={4}
+                    placeholder="Diet, appetite, sleep, bowel/bladder, addictions, occupation..."
+                  />
                 </div>
 
                 <div className="form-field">
-                  <label htmlFor="visit-status">Status</label>
-                  <select
-                    id="visit-status"
-                    value={status}
-                    onChange={(event) => setStatus(event.target.value)}
-                    required
-                  >
-                    {encounterStatuses.map((nextStatus) => (
-                      <option key={nextStatus} value={nextStatus}>
-                        {nextStatus}
-                      </option>
-                    ))}
-                  </select>
+                  <label htmlFor="family-history">Family History</label>
+                  <textarea
+                    id="family-history"
+                    value={familyHistory}
+                    onChange={(event) => setFamilyHistory(event.target.value)}
+                    rows={4}
+                    placeholder="Relevant hereditary/familial illnesses..."
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label htmlFor="drug-allergy-history">Drug / Allergy History</label>
+                  <textarea
+                    id="drug-allergy-history"
+                    value={drugAllergyHistory}
+                    onChange={(event) => setDrugAllergyHistory(event.target.value)}
+                    rows={4}
+                    placeholder="Current medications, previous drug reactions, allergies..."
+                  />
+                </div>
+              </div>
+
+              <div className="form-field form-field-full">
+                <label htmlFor="examination">Examination</label>
+                <textarea
+                  id="examination"
+                  value={examination}
+                  onChange={(event) => setExamination(event.target.value)}
+                  rows={5}
+                  placeholder="General examination, vitals, systemic examination and relevant findings..."
+                />
+              </div>
+            </section>
+
+            <section className="clinical-form-section">
+              <div className="clinical-section-header">
+                <p className="eyebrow">AYURVEDIC ASSESSMENT</p>
+                <h3>Ayurvedic Clinical Assessment</h3>
+              </div>
+
+              <div className="form-grid">
+                <div className="form-field">
+                  <label htmlFor="prakriti">Prakriti</label>
+                  <textarea id="prakriti" value={prakriti} onChange={(event) => setPrakriti(event.target.value)} rows={3} />
+                </div>
+
+                <div className="form-field">
+                  <label htmlFor="vikriti">Vikriti</label>
+                  <textarea id="vikriti" value={vikriti} onChange={(event) => setVikriti(event.target.value)} rows={3} />
+                </div>
+
+                <div className="form-field">
+                  <label htmlFor="dosha">Dosha</label>
+                  <textarea id="dosha" value={dosha} onChange={(event) => setDosha(event.target.value)} rows={3} />
+                </div>
+
+                <div className="form-field">
+                  <label htmlFor="dushya">Dushya</label>
+                  <textarea id="dushya" value={dushya} onChange={(event) => setDushya(event.target.value)} rows={3} />
+                </div>
+
+                <div className="form-field">
+                  <label htmlFor="srotas">Srotas</label>
+                  <textarea id="srotas" value={srotas} onChange={(event) => setSrotas(event.target.value)} rows={3} />
+                </div>
+
+                <div className="form-field">
+                  <label htmlFor="agni">Agni</label>
+                  <textarea id="agni" value={agni} onChange={(event) => setAgni(event.target.value)} rows={3} />
+                </div>
+
+                <div className="form-field">
+                  <label htmlFor="koshtha">Koshtha</label>
+                  <textarea id="koshtha" value={koshtha} onChange={(event) => setKoshtha(event.target.value)} rows={3} />
+                </div>
+
+                <div className="form-field">
+                  <label htmlFor="ama">Ama</label>
+                  <textarea id="ama" value={ama} onChange={(event) => setAma(event.target.value)} rows={3} />
+                </div>
+
+                <div className="form-field">
+                  <label htmlFor="nidana">Nidana</label>
+                  <textarea id="nidana" value={nidana} onChange={(event) => setNidana(event.target.value)} rows={3} />
+                </div>
+
+                <div className="form-field">
+                  <label htmlFor="samprapti">Samprapti</label>
+                  <textarea id="samprapti" value={samprapti} onChange={(event) => setSamprapti(event.target.value)} rows={3} />
                 </div>
 
                 <div className="form-field form-field-full">
-                  <label htmlFor="visit-complaint">Chief complaint</label>
+                  <label htmlFor="ayurvedic-diagnosis">Ayurvedic Diagnosis</label>
                   <textarea
-                    id="visit-complaint"
+                    id="ayurvedic-diagnosis"
+                    value={ayurvedicDiagnosis}
+                    onChange={(event) => setAyurvedicDiagnosis(event.target.value)}
                     rows={4}
-                    value={chiefComplaint}
-                    onChange={(event) => setChiefComplaint(event.target.value)}
-                    placeholder="Describe the main concern or reason for visit"
-                    required
+                    placeholder="Ayurvedic diagnosis / Roga-Rogi assessment..."
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section className="clinical-form-section">
+              <div className="clinical-section-header">
+                <p className="eyebrow">MODERN ASSESSMENT</p>
+                <h3>Assessment & Investigations</h3>
+              </div>
+
+              <div className="form-grid">
+                <div className="form-field form-field-full">
+                  <label htmlFor="assessment">Assessment</label>
+                  <textarea
+                    id="assessment"
+                    value={assessment}
+                    onChange={(event) => setAssessment(event.target.value)}
+                    rows={4}
                   />
                 </div>
 
-                <div className="form-actions">
+                <div className="form-field">
+                  <label htmlFor="diagnosis">Diagnosis</label>
+                  <textarea
+                    id="diagnosis"
+                    value={diagnosis}
+                    onChange={(event) => setDiagnosis(event.target.value)}
+                    rows={4}
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label htmlFor="differential-diagnosis">Differential Diagnosis</label>
+                  <textarea
+                    id="differential-diagnosis"
+                    value={differentialDiagnosis}
+                    onChange={(event) => setDifferentialDiagnosis(event.target.value)}
+                    rows={4}
+                  />
+                </div>
+
+                <div className="form-field form-field-full">
+                  <label htmlFor="investigations">Investigations</label>
+                  <textarea
+                    id="investigations"
+                    value={investigations}
+                    onChange={(event) => setInvestigations(event.target.value)}
+                    rows={4}
+                    placeholder="Laboratory, imaging and other relevant investigations..."
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section className="clinical-form-section">
+              <div className="clinical-section-header">
+                <p className="eyebrow">MANAGEMENT</p>
+                <h3>Treatment & Follow-up</h3>
+              </div>
+
+              <div className="form-field form-field-full">
+                <label htmlFor="treatment-plan">Treatment / Plan</label>
+                <textarea
+                  id="treatment-plan"
+                  value={treatmentPlan}
+                  onChange={(event) => setTreatmentPlan(event.target.value)}
+                  rows={5}
+                  placeholder="Ayurvedic treatment, modern treatment, procedures, counselling and other plan..."
+                />
+              </div>
+
+              <div className="form-field form-field-full">
+                <label htmlFor="follow-up-advice">Follow-up Advice</label>
+                <textarea
+                  id="follow-up-advice"
+                  value={followUpAdvice}
+                  onChange={(event) => setFollowUpAdvice(event.target.value)}
+                  rows={4}
+                  placeholder="Follow-up date, precautions, investigations, warning signs and instructions..."
+                />
+              </div>
+            </section>
+<div className="form-actions">
                   <button type="submit" className="primary-button" disabled={savingVisit}>
                     {savingVisit ? 'Saving...' : 'Save Visit'}
                   </button>
