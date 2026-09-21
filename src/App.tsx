@@ -17,6 +17,7 @@ import EditPatientPage from './pages/patients/EditPatientPage'
 import ClinicalWorkspacePage from './pages/clinical/ClinicalWorkspacePage'
 import ClinicalEncounterPage from './pages/clinical/ClinicalEncounterPage'
 import ClinicalEncountersPage from './pages/clinical/ClinicalEncountersPage'
+import AppointmentsPage from './pages/appointments/AppointmentsPage'
 
 function LoginPage() {
   const navigate = useNavigate()
@@ -118,6 +119,12 @@ function HomePage({ email }: { email: string }) {
           <strong>Clinical</strong>
           <span>Clinical decision workspace</span>
         </NavLink>
+
+          <NavLink to="/appointments" className="module-card">
+            <span className="module-icon">📅</span>
+            <strong>Appointments</strong>
+            <span>Scheduling and appointment workspace</span>
+          </NavLink>
 
         <NavLink to="/research" className="module-card">
           <span className="module-icon">📚</span>
@@ -342,6 +349,7 @@ function ProtectedApp({
           <Routes>
             <Route path="/" element={<HomePage email={email} />} />
             <Route path="/patients" element={<PatientsPage />} />
+          <Route path="/appointments" element={<AppointmentsPage />} />
             <Route path="/clinical" element={<ClinicalWorkspacePage />} />
             <Route path="/clinical/:patientId" element={<ClinicalWorkspacePage />} />
         <Route
