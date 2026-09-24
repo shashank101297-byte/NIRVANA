@@ -27,3 +27,9 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+
+# Local development backups
+*.before-*
+
+# Supabase generated remote schema snapshot
+supabase/migrations/*_remote_schema.sql
