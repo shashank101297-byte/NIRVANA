@@ -20,6 +20,9 @@ type Props = {
   placeholder?: string
   multiple?: boolean
   onStructuredChange?: (values: TerminologyValue[]) => void
+  allowCustom?: boolean
+  customValue?: string
+  onCustomChange?: (value: string) => void
 }
 
 export default function TerminologySelect({
@@ -30,11 +33,21 @@ export default function TerminologySelect({
   placeholder = 'Search or select...',
   multiple = false,
   onStructuredChange,
+  allowCustom = false,
+  customValue = '',
+  onCustomChange,
 }: Props) {
   const [options, setOptions] = useState<TerminologyValue[]>([])
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [showCustom, setShowCustom] = useState(false)
+  const [customDraft, setCustomDraft] = useState(customValue)
+
+  useEffect(() => {
+    setCustomDraft(customValue)
+  }, [customValue])
 
   useEffect(() => {
     let active = true
@@ -85,22 +98,65 @@ export default function TerminologySelect({
     }
   }, [setCode])
 
+  const categories = useMemo(() => {
+    const counts = new Map<string, number>()
+
+    options.forEach((option) => {
+      const category =
+        typeof option.metadata.category === 'string'
+          ? option.metadata.category
+          : 'Other'
+
+      counts.set(category, (counts.get(category) ?? 0) + 1)
+    })
+
+    return Array.from(counts.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name))
+  }, [options])
+
+  const isCategorized = categories.length > 1
+
   const filteredOptions = useMemo(() => {
     const search = query.trim().toLowerCase()
 
-    if (!search) return options
+    let source = options
 
-    return options.filter((item) =>
-      `${item.display_name} ${item.search_terms} ${item.code}`
+    if (selectedCategory) {
+      source = source.filter(
+        (option) => option.metadata.category === selectedCategory,
+      )
+    }
+
+    if (!search) return source
+
+    return source.filter((item) =>
+      `${item.display_name} ${item.search_terms} ${item.code} ${
+        typeof item.metadata.category === 'string'
+          ? item.metadata.category
+          : ''
+      }`
         .toLowerCase()
         .includes(search),
     )
-  }, [options, query])
+  }, [options, query, selectedCategory])
 
   const selectedLabels = value.map(
     (code) =>
       options.find((option) => option.code === code)?.display_name ?? code,
   )
+
+  function updateStructured(nextValues: string[]) {
+    if (!onStructuredChange) return
+
+    onStructuredChange(
+      nextValues
+        .map((selectedCode) =>
+          options.find((option) => option.code === selectedCode),
+        )
+        .filter((option): option is TerminologyValue => Boolean(option)),
+    )
+  }
 
   function selectOption(code: string) {
     const nextValues = multiple
@@ -110,30 +166,36 @@ export default function TerminologySelect({
       : [code]
 
     onChange(nextValues)
-
-    if (onStructuredChange) {
-      onStructuredChange(
-        nextValues
-          .map((selectedCode) =>
-            options.find((option) => option.code === selectedCode),
-          )
-          .filter((option): option is TerminologyValue => Boolean(option)),
-      )
-    }
+    updateStructured(nextValues)
 
     if (!multiple) {
       setOpen(false)
       setQuery('')
+      setSelectedCategory(null)
     }
   }
 
   function removeValue(code: string) {
-    onChange(value.filter((item) => item !== code))
+    const nextValues = value.filter((item) => item !== code)
+
+    onChange(nextValues)
+    updateStructured(nextValues)
   }
 
   function closePanel() {
     setOpen(false)
     setQuery('')
+    setSelectedCategory(null)
+    setShowCustom(false)
+  }
+
+  function saveCustom() {
+    const nextValue = customDraft.trim()
+
+    if (!onCustomChange) return
+
+    onCustomChange(nextValue)
+    setShowCustom(false)
   }
 
   const panel =
@@ -159,6 +221,12 @@ export default function TerminologySelect({
               </div>
 
               <h3>{label}</h3>
+
+              {isCategorized && (
+                <div className="nirvana-terminology-library-label">
+                  NIRVANA Clinical Diagnosis Library
+                </div>
+              )}
             </div>
 
             <button
@@ -183,10 +251,48 @@ export default function TerminologySelect({
             />
           </div>
 
+          {isCategorized && !query && (
+            <div className="nirvana-terminology-breadcrumb">
+              {selectedCategory ? (
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory(null)}
+                >
+                  ← All categories
+                </button>
+              ) : (
+                <span>Browse by category</span>
+              )}
+            </div>
+          )}
+
           <div className="nirvana-terminology-results">
             {loading ? (
               <div className="nirvana-terminology-empty">
                 Loading options...
+              </div>
+            ) : isCategorized && !selectedCategory && !query ? (
+              <div className="nirvana-terminology-categories">
+                {categories.map((category) => (
+                  <button
+                    type="button"
+                    key={category.name}
+                    className="nirvana-terminology-category"
+                    onClick={() => setSelectedCategory(category.name)}
+                  >
+                    <span className="nirvana-terminology-category-name">
+                      {category.name}
+                    </span>
+
+                    <span className="nirvana-terminology-category-count">
+                      {category.count}
+                    </span>
+
+                    <span className="nirvana-terminology-category-arrow">
+                      ›
+                    </span>
+                  </button>
+                ))}
               </div>
             ) : filteredOptions.length === 0 ? (
               <div className="nirvana-terminology-empty">
@@ -209,8 +315,18 @@ export default function TerminologySelect({
                       {selected ? '✓' : ''}
                     </span>
 
-                    <span className="nirvana-terminology-option-name">
-                      {option.display_name}
+                    <span className="nirvana-terminology-option-content">
+                      <span className="nirvana-terminology-option-name">
+                        {option.display_name}
+                      </span>
+
+                      {isCategorized && query && (
+                        <span className="nirvana-terminology-option-category">
+                          {typeof option.metadata.category === 'string'
+                            ? option.metadata.category
+                            : ''}
+                        </span>
+                      )}
                     </span>
                   </button>
                 )
@@ -218,10 +334,55 @@ export default function TerminologySelect({
             )}
           </div>
 
+          {allowCustom && (
+            <div className="nirvana-terminology-custom">
+              {!showCustom ? (
+                <button
+                  type="button"
+                  className="nirvana-terminology-add-custom"
+                  onClick={() => setShowCustom(true)}
+                >
+                  ＋ Add custom {label.toLowerCase()}
+                </button>
+              ) : (
+                <div className="nirvana-terminology-custom-editor">
+                  <input
+                    type="text"
+                    value={customDraft}
+                    onChange={(event) => setCustomDraft(event.target.value)}
+                    placeholder={`Enter custom ${label.toLowerCase()}...`}
+                    autoFocus
+                  />
+
+                  <div className="nirvana-terminology-custom-actions">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomDraft(customValue)
+                        setShowCustom(false)
+                      }}
+                    >
+                      Cancel
+                    </button>
+
+                    <button
+                      type="button"
+                      className="primary"
+                      onClick={saveCustom}
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {multiple && (
             <div className="nirvana-terminology-footer">
               <span>
                 {value.length} selected
+                {customValue.trim() ? ' + custom' : ''}
               </span>
 
               <button
@@ -250,15 +411,18 @@ export default function TerminologySelect({
           aria-expanded={open}
         >
           <span>
-            {selectedLabels.length
-              ? selectedLabels.join(', ')
+            {selectedLabels.length || customValue.trim()
+              ? [
+                  ...selectedLabels,
+                  ...(customValue.trim() ? [customValue.trim()] : []),
+                ].join(', ')
               : placeholder}
           </span>
 
           <span>⌄</span>
         </button>
 
-        {selectedLabels.length > 0 && (
+        {(selectedLabels.length > 0 || customValue.trim()) && (
           <div className="terminology-chips">
             {selectedLabels.map((name, index) => (
               <span
@@ -276,6 +440,20 @@ export default function TerminologySelect({
                 </button>
               </span>
             ))}
+
+            {customValue.trim() && (
+              <span className="terminology-chip custom">
+                {customValue.trim()}
+
+                <button
+                  type="button"
+                  onClick={() => onCustomChange?.('')}
+                  aria-label={`Remove custom ${label}`}
+                >
+                  ×
+                </button>
+              </span>
+            )}
           </div>
         )}
       </div>

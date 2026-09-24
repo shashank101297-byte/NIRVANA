@@ -50,7 +50,6 @@ export default function ClinicalWorkspacePage() {
   const [savingVisit, setSavingVisit] = useState(false)
   const [error, setError] = useState('')
 
-  const [encounterDate, setEncounterDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [encounterType, setEncounterType] = useState('OPD')
   const [status, setStatus] = useState('Open')
   const [chiefComplaint, setChiefComplaint] = useState('')
@@ -81,7 +80,36 @@ export default function ClinicalWorkspacePage() {
 
   const [assessment, setAssessment] = useState('')
   const [diagnosis, setDiagnosis] = useState('')
+  const [diagnosisStructured, setDiagnosisStructured] = useState<string[]>([])
+  const [diagnosisCodingMetadata, setDiagnosisCodingMetadata] = useState<
+    Array<{
+      code: string
+      display_name: string
+      source_system: string
+      version: string
+      metadata: Record<string, unknown>
+    }>
+  >([])
+  const [diagnosisCustom, setDiagnosisCustom] = useState('')
+
   const [differentialDiagnosis, setDifferentialDiagnosis] = useState('')
+  const [differentialDiagnosisStructured, setDifferentialDiagnosisStructured] =
+    useState<string[]>([])
+  const [
+    differentialDiagnosisCodingMetadata,
+    setDifferentialDiagnosisCodingMetadata,
+  ] = useState<
+    Array<{
+      code: string
+      display_name: string
+      source_system: string
+      version: string
+      metadata: Record<string, unknown>
+    }>
+  >([])
+  const [differentialDiagnosisCustom, setDifferentialDiagnosisCustom] =
+    useState('')
+
   const [investigations, setInvestigations] = useState('')
   const [investigationsStructured, setInvestigationsStructured] = useState<string[]>([])
   const [treatmentPlan, setTreatmentPlan] = useState('')
@@ -255,7 +283,8 @@ export default function ClinicalWorkspacePage() {
         patient_id: selectedPatient.id,
             appointment_id: appointmentId || null,
         created_by: userData.user.id,
-        encounter_date: new Date(encounterDate).toISOString(),
+        // Automatically record the exact date and time when the encounter is saved.
+        encounter_date: new Date().toISOString(),
         encounter_type: encounterType,
         status,
         chief_complaint: chiefComplaint.trim(),
@@ -288,6 +317,17 @@ export default function ClinicalWorkspacePage() {
         diagnosis: diagnosis.trim(),
         differential_diagnosis: differentialDiagnosis.trim(),
         investigations: investigations.trim(),
+        modern_structured_diagnoses: diagnosisStructured,
+        modern_structured_differential_diagnoses:
+          differentialDiagnosisStructured,
+        diagnosis_coding_metadata: {
+          terminology: 'NIRVANA clinical diagnosis library',
+          concepts: diagnosisCodingMetadata,
+        },
+        differential_diagnosis_coding_metadata: {
+          terminology: 'NIRVANA clinical diagnosis library',
+          concepts: differentialDiagnosisCodingMetadata,
+        },
         structured_investigations: investigationsStructured,
         treatment_plan: treatmentPlan.trim(),
         follow_up_advice: followUpAdvice.trim(),
@@ -317,7 +357,6 @@ export default function ClinicalWorkspacePage() {
     }
 
     setSavedEncounterId(createdEncounter.id)
-    setEncounterDate(new Date().toISOString().slice(0, 10))
     setEncounterType('OPD')
     setStatus('Open')
     setChiefComplaint('')
@@ -728,22 +767,70 @@ export default function ClinicalWorkspacePage() {
                 </div>
 
                 <div className="form-field">
-                  <label htmlFor="diagnosis">Diagnosis</label>
-                  <textarea
-                    id="diagnosis"
-                    value={diagnosis}
-                    onChange={(event) => setDiagnosis(event.target.value)}
-                    rows={4}
+                  <TerminologySelect
+                    label="Diagnosis"
+                    setCode="modern.diagnosis.common"
+                    value={diagnosisStructured}
+                    onChange={(values) => {
+                      setDiagnosisStructured(values)
+                      setDiagnosis(
+                        [
+                          ...values,
+                          ...(diagnosisCustom.trim()
+                            ? [diagnosisCustom.trim()]
+                            : []),
+                        ].join(', '),
+                      )
+                    }}
+                    onStructuredChange={setDiagnosisCodingMetadata}
+                    multiple
+                    allowCustom
+                    customValue={diagnosisCustom}
+                    onCustomChange={(custom) => {
+                      setDiagnosisCustom(custom)
+                      setDiagnosis(
+                        [
+                          ...diagnosisStructured,
+                          ...(custom.trim() ? [custom.trim()] : []),
+                        ].join(', '),
+                      )
+                    }}
+                    placeholder="Search and select diagnosis..."
                   />
                 </div>
 
                 <div className="form-field">
-                  <label htmlFor="differential-diagnosis">Differential Diagnosis</label>
-                  <textarea
-                    id="differential-diagnosis"
-                    value={differentialDiagnosis}
-                    onChange={(event) => setDifferentialDiagnosis(event.target.value)}
-                    rows={4}
+                  <TerminologySelect
+                    label="Differential Diagnosis"
+                    setCode="modern.diagnosis.common"
+                    value={differentialDiagnosisStructured}
+                    onChange={(values) => {
+                      setDifferentialDiagnosisStructured(values)
+                      setDifferentialDiagnosis(
+                        [
+                          ...values,
+                          ...(differentialDiagnosisCustom.trim()
+                            ? [differentialDiagnosisCustom.trim()]
+                            : []),
+                        ].join(', '),
+                      )
+                    }}
+                    onStructuredChange={
+                      setDifferentialDiagnosisCodingMetadata
+                    }
+                    multiple
+                    allowCustom
+                    customValue={differentialDiagnosisCustom}
+                    onCustomChange={(custom) => {
+                      setDifferentialDiagnosisCustom(custom)
+                      setDifferentialDiagnosis(
+                        [
+                          ...differentialDiagnosisStructured,
+                          ...(custom.trim() ? [custom.trim()] : []),
+                        ].join(', '),
+                      )
+                    }}
+                    placeholder="Search and select differential diagnosis..."
                   />
                 </div>
 

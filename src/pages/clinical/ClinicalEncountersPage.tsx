@@ -225,9 +225,13 @@ export default function ClinicalEncountersPage() {
               </span>
 
               <span className="encounter-history-date">
-                {new Date(
-                  encounter.encounter_date
-                ).toLocaleDateString("en-GB")}
+                {new Date(encounter.encounter_date).toLocaleString("en-GB", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </span>
             </NavLink>
           ))}
