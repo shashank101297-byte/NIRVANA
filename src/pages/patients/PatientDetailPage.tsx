@@ -37,9 +37,17 @@ type ClinicalEncounterSummary = {
 }
 
 function formatEncounterDate(value: string) {
-  // Do not invent a time when the database contains only a calendar date.
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    const [year, month, day] = value.split('-')
+  const dateOnly = /^(\d{4}-\d{2}-\d{2})$/.exec(value)
+
+  if (dateOnly) {
+    const [year, month, day] = dateOnly[1].split('-')
+    return `${day}/${month}/${year}`
+  }
+
+  const midnightUtc = /^(\d{4}-\d{2}-\d{2})T00:00:00(?:\.\d+)?(?:Z|\+00:00)$/.exec(value)
+
+  if (midnightUtc) {
+    const [year, month, day] = midnightUtc[1].split('-')
     return `${day}/${month}/${year}`
   }
 
@@ -369,51 +377,57 @@ export default function PatientDetailPage() {
           </div>
         ) : (
           <div className="encounter-history-list">
-            {encounters.map((encounter, index) => (
-              <NavLink
-                key={encounter.id}
-                to={`/clinical/${patient.id}/encounter/${encounter.id}`}
-                className="encounter-history-item"
+        {encounters.map((encounter, index) => (
+          <NavLink
+            key={encounter.id}
+            to={`/clinical/${patient.id}/encounter/${encounter.id}`}
+            className="encounter-history-item"
+          >
+            <span className="encounter-history-number">
+              {index + 1}
+            </span>
+
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <strong className="encounter-history-date">
+                {formatEncounterDate(encounter.encounter_date)}
+              </strong>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  color: 'var(--text-h)',
+                  fontWeight: 600,
+                }}
               >
-                <span className="encounter-history-number">
-                  {index + 1}
-                </span>
+                {encounter.encounter_type || 'Clinical encounter'}
+                {' · '}
+                {encounter.status || 'Open'}
+              </div>
 
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <strong className="encounter-history-date">
-                    {formatEncounterDate(encounter.encounter_date)}
-                  </strong>
+              <div style={{ marginTop: 8, fontSize: 14 }}>
+                <strong>Diagnosis:</strong>{' '}
+                {getDiagnosisSummary(encounter)}
+              </div>
 
-                  <div
-                    style={{
-                      marginTop: 4,
-                      color: 'var(--text-h)',
-                    }}
-                  >
-                    <strong>
-                      {encounter.encounter_type || 'Clinical encounter'}
-                    </strong>
-                    {' · '}
-                    {encounter.status || 'Open'}
-                  </div>
-
-                  <div style={{ marginTop: 4, fontSize: 14 }}>
-                    <strong>Diagnosis:</strong>{' '}
-                    {getDiagnosisSummary(encounter)}
-                  </div>
-
-                  {encounter.treatment_plan?.trim() && (
-                    <div style={{ marginTop: 4, fontSize: 14 }}>
-                      <strong>Treatment:</strong>{' '}
-                      {encounter.treatment_plan.trim()}
-                    </div>
-                  )}
+              {encounter.ayurvedic_diagnosis?.trim() && (
+                <div style={{ marginTop: 5, fontSize: 14 }}>
+                  <strong>Ayurvedic diagnosis:</strong>{' '}
+                  {encounter.ayurvedic_diagnosis.trim()}
                 </div>
+              )}
 
-                <span aria-hidden="true">→</span>
-              </NavLink>
-            ))}
-          </div>
+              {encounter.treatment_plan?.trim() && (
+                <div style={{ marginTop: 5, fontSize: 14 }}>
+                  <strong>Treatment:</strong>{' '}
+                  {encounter.treatment_plan.trim()}
+                </div>
+              )}
+            </div>
+
+            <span aria-hidden="true">→</span>
+          </NavLink>
+        ))}
+      </div>
         )}
       </section>
     </div>
