@@ -3,6 +3,7 @@ import { NavLink, useNavigate, useParams, useSearchParams } from 'react-router-d
 import { supabase } from '../../lib/supabase'
 import { useOrganization } from '../../context/OrganizationContext'
 import PrescriptionSection from './PrescriptionSection'
+import TerminologySelect from './TerminologySelect'
 
 type Patient = {
   id: string
@@ -61,12 +62,18 @@ export default function ClinicalWorkspacePage() {
   const [examination, setExamination] = useState('')
 
   const [prakriti, setPrakriti] = useState('')
+  const [prakritiStructured, setPrakritiStructured] = useState<string[]>([])
   const [vikriti, setVikriti] = useState('')
   const [dosha, setDosha] = useState('')
+  const [doshaStructured, setDoshaStructured] = useState<string[]>([])
   const [dushya, setDushya] = useState('')
+  const [dushyaStructured, setDushyaStructured] = useState<string[]>([])
   const [srotas, setSrotas] = useState('')
+  const [srotasStructured, setSrotasStructured] = useState<string[]>([])
   const [agni, setAgni] = useState('')
+  const [agniStructured, setAgniStructured] = useState<string[]>([])
   const [koshtha, setKoshtha] = useState('')
+  const [koshthaStructured, setKoshthaStructured] = useState<string[]>([])
   const [ama, setAma] = useState('')
   const [nidana, setNidana] = useState('')
   const [samprapti, setSamprapti] = useState('')
@@ -76,6 +83,7 @@ export default function ClinicalWorkspacePage() {
   const [diagnosis, setDiagnosis] = useState('')
   const [differentialDiagnosis, setDifferentialDiagnosis] = useState('')
   const [investigations, setInvestigations] = useState('')
+  const [investigationsStructured, setInvestigationsStructured] = useState<string[]>([])
   const [treatmentPlan, setTreatmentPlan] = useState('')
   const [followUpAdvice, setFollowUpAdvice] = useState('')
 
@@ -268,10 +276,19 @@ export default function ClinicalWorkspacePage() {
         nidana: nidana.trim(),
         samprapti: samprapti.trim(),
         ayurvedic_diagnosis: ayurvedicDiagnosis.trim(),
+        ayurvedic_structured_assessment: {
+          prakriti: prakritiStructured,
+          dosha: doshaStructured,
+          dushya: dushyaStructured,
+          srotas: srotasStructured,
+          agni: agniStructured,
+          koshtha: koshthaStructured,
+        },
         assessment: assessment.trim(),
         diagnosis: diagnosis.trim(),
         differential_diagnosis: differentialDiagnosis.trim(),
         investigations: investigations.trim(),
+        structured_investigations: investigationsStructured,
         treatment_plan: treatmentPlan.trim(),
         follow_up_advice: followUpAdvice.trim(),
       })
@@ -594,40 +611,73 @@ export default function ClinicalWorkspacePage() {
               </summary>
 
               <div className="form-grid">
-                <div className="form-field">
-                  <label htmlFor="prakriti">Prakriti</label>
-                  <textarea id="prakriti" value={prakriti} onChange={(event) => setPrakriti(event.target.value)} rows={3} />
-                </div>
+                <TerminologySelect
+                  label="Prakriti"
+                  setCode="ayurveda.prakriti"
+                  value={prakritiStructured}
+                  onChange={(values) => {
+                    setPrakritiStructured(values)
+                    setPrakriti(values.join(', '))
+                  }}
+                />
 
                 <div className="form-field">
                   <label htmlFor="vikriti">Vikriti</label>
                   <textarea id="vikriti" value={vikriti} onChange={(event) => setVikriti(event.target.value)} rows={3} />
                 </div>
 
-                <div className="form-field">
-                  <label htmlFor="dosha">Dosha</label>
-                  <textarea id="dosha" value={dosha} onChange={(event) => setDosha(event.target.value)} rows={3} />
-                </div>
+                <TerminologySelect
+                  label="Dosha"
+                  setCode="ayurveda.dosha"
+                  value={doshaStructured}
+                  onChange={(values) => {
+                    setDoshaStructured(values)
+                    setDosha(values.join(', '))
+                  }}
+                  multiple
+                />
 
-                <div className="form-field">
-                  <label htmlFor="dushya">Dushya</label>
-                  <textarea id="dushya" value={dushya} onChange={(event) => setDushya(event.target.value)} rows={3} />
-                </div>
+                <TerminologySelect
+                  label="Dushya"
+                  setCode="ayurveda.dushya"
+                  value={dushyaStructured}
+                  onChange={(values) => {
+                    setDushyaStructured(values)
+                    setDushya(values.join(', '))
+                  }}
+                  multiple
+                />
 
-                <div className="form-field">
-                  <label htmlFor="srotas">Srotas</label>
-                  <textarea id="srotas" value={srotas} onChange={(event) => setSrotas(event.target.value)} rows={3} />
-                </div>
+                <TerminologySelect
+                  label="Srotas"
+                  setCode="ayurveda.srotas"
+                  value={srotasStructured}
+                  onChange={(values) => {
+                    setSrotasStructured(values)
+                    setSrotas(values.join(', '))
+                  }}
+                  multiple
+                />
 
-                <div className="form-field">
-                  <label htmlFor="agni">Agni</label>
-                  <textarea id="agni" value={agni} onChange={(event) => setAgni(event.target.value)} rows={3} />
-                </div>
+                <TerminologySelect
+                  label="Agni"
+                  setCode="ayurveda.agni"
+                  value={agniStructured}
+                  onChange={(values) => {
+                    setAgniStructured(values)
+                    setAgni(values.join(', '))
+                  }}
+                />
 
-                <div className="form-field">
-                  <label htmlFor="koshtha">Koshtha</label>
-                  <textarea id="koshtha" value={koshtha} onChange={(event) => setKoshtha(event.target.value)} rows={3} />
-                </div>
+                <TerminologySelect
+                  label="Koshtha"
+                  setCode="ayurveda.koshtha"
+                  value={koshthaStructured}
+                  onChange={(values) => {
+                    setKoshthaStructured(values)
+                    setKoshtha(values.join(', '))
+                  }}
+                />
 
                 <div className="form-field">
                   <label htmlFor="ama">Ama</label>
@@ -698,13 +748,24 @@ export default function ClinicalWorkspacePage() {
                 </div>
 
                 <div className="form-field form-field-full">
-                  <label htmlFor="investigations">Investigations</label>
+                  <TerminologySelect
+                    label="Investigations"
+                    setCode="investigation.common"
+                    value={investigationsStructured}
+                    onChange={(values) => {
+                      setInvestigationsStructured(values)
+                      setInvestigations(values.join(', '))
+                    }}
+                    multiple
+                    placeholder="Search and select investigations..."
+                  />
+
                   <textarea
-                    id="investigations"
+                    id="investigations-notes"
                     value={investigations}
                     onChange={(event) => setInvestigations(event.target.value)}
-                    rows={4}
-                    placeholder="Laboratory, imaging and other relevant investigations..."
+                    rows={3}
+                    placeholder="Optional findings, details or custom investigation..."
                   />
                 </div>
               </div>

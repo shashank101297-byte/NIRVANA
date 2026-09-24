@@ -230,3 +230,498 @@ code {
     gap: 12px;
   }
 }
+
+/* NIRVANA clinical terminology selector */
+
+.terminology-select {
+  position: relative;
+}
+
+.terminology-trigger {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid #d8dee8;
+  border-radius: 10px;
+  background: #fff;
+  color: #172033;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.terminology-trigger:hover {
+  border-color: #9aa8ba;
+}
+
+.terminology-popover {
+  position: absolute;
+  z-index: 50;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  background: #fff;
+  border: 1px solid #d8dee8;
+  border-radius: 12px;
+  box-shadow: 0 14px 35px rgba(15, 23, 42, 0.14);
+  padding: 10px;
+}
+
+.terminology-search {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #d8dee8;
+  border-radius: 9px;
+  outline: none;
+  font: inherit;
+}
+
+.terminology-search:focus {
+  border-color: #6b7f99;
+}
+
+.terminology-options {
+  max-height: 260px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.terminology-option {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 11px 10px;
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: #172033;
+}
+
+.terminology-option:hover,
+.terminology-option.selected {
+  background: #f2f5f8;
+}
+
+.terminology-option span:first-child {
+  width: 20px;
+  flex: 0 0 20px;
+}
+
+.terminology-empty {
+  padding: 18px 10px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.terminology-close {
+  width: 100%;
+  margin-top: 8px;
+  min-height: 40px;
+  border: 0;
+  border-radius: 8px;
+  background: #172033;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+
+.terminology-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.terminology-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #eef2f6;
+  color: #273449;
+  font-size: 13px;
+}
+
+.terminology-chip button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: #667085;
+  font-size: 16px;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .terminology-popover {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    top: 20%;
+    max-height: 65vh;
+  }
+
+  .terminology-options {
+    max-height: 45vh;
+  }
+
+  .terminology-trigger {
+    min-height: 50px;
+  }
+}
+
+/* Clinical terminology popovers must not be clipped by form containers */
+.clinical-form-section,
+.clinical-form-section > *,
+.clinical-form-section .form-grid,
+.clinical-form-section .form-field {
+  overflow: visible;
+}
+
+.terminology-select {
+  z-index: 20;
+}
+
+.terminology-select:focus-within {
+  z-index: 100;
+}
+
+.terminology-popover {
+  max-height: min(420px, 60vh);
+  overflow: hidden;
+}
+
+.terminology-options {
+  max-height: 280px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 640px) {
+  .terminology-popover {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    top: 12vh;
+    width: auto;
+    max-height: 76vh;
+    border-radius: 14px;
+  }
+
+  .terminology-options {
+    max-height: 52vh;
+  }
+
+  .terminology-option {
+    min-height: 46px;
+    padding: 12px 10px;
+  }
+}
+
+/* =========================================================
+   NIRVANA CLINICAL TERMINOLOGY PANEL
+   ========================================================= */
+
+.nirvana-terminology-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000000;
+
+  display: flex;
+  justify-content: flex-end;
+  align-items: stretch;
+
+  pointer-events: none;
+}
+
+.nirvana-terminology-panel {
+  width: 380px;
+  max-width: 34vw;
+  height: calc(100vh - 32px);
+
+  margin: 16px;
+  padding: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #ffffff;
+  border: 1px solid rgba(20, 65, 54, 0.14);
+  border-radius: 20px;
+
+  box-shadow:
+    -12px 0 40px rgba(15, 23, 42, 0.08),
+    0 12px 40px rgba(15, 23, 42, 0.12);
+
+  overflow: hidden;
+
+  pointer-events: auto;
+
+  animation: nirvana-panel-enter 180ms ease-out;
+}
+
+.nirvana-terminology-header {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 20px 20px 16px;
+
+  border-bottom: 1px solid rgba(20, 65, 54, 0.08);
+}
+
+.nirvana-terminology-kicker {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #6b7f78;
+  margin-bottom: 5px;
+}
+
+.nirvana-terminology-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #143f35;
+}
+
+.nirvana-terminology-close-icon {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: #edf5f2;
+  color: #164d40;
+
+  font-size: 24px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.nirvana-terminology-search-wrap {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin: 16px;
+  padding: 0 14px;
+
+  min-height: 50px;
+
+  border: 1px solid #d7e1dd;
+  border-radius: 12px;
+
+  background: #fafcfb;
+}
+
+.nirvana-terminology-search-wrap span {
+  font-size: 22px;
+  color: #61746e;
+}
+
+.nirvana-terminology-search-wrap input {
+  width: 100%;
+  min-width: 0;
+
+  border: 0;
+  outline: 0;
+  background: transparent;
+
+  font-size: 16px;
+  color: #1d2935;
+}
+
+.nirvana-terminology-results {
+  flex: 1 1 auto;
+  min-height: 0;
+
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  padding: 0 12px 12px;
+}
+
+.nirvana-terminology-option {
+  width: 100%;
+  min-height: 48px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 10px 12px;
+
+  border: 0;
+  border-radius: 10px;
+
+  background: transparent;
+
+  text-align: left;
+  cursor: pointer;
+}
+
+.nirvana-terminology-option:hover {
+  background: #f3f8f6;
+}
+
+.nirvana-terminology-option.selected {
+  background: #eaf4f0;
+}
+
+.nirvana-terminology-check {
+  flex: 0 0 22px;
+
+  width: 22px;
+  height: 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #9fb2ab;
+  border-radius: 6px;
+
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.nirvana-terminology-option.selected .nirvana-terminology-check {
+  background: #145344;
+  border-color: #145344;
+}
+
+.nirvana-terminology-option-name {
+  font-size: 15px;
+  color: #24333d;
+}
+
+.nirvana-terminology-empty {
+  padding: 30px 16px;
+  text-align: center;
+  color: #71817b;
+  font-size: 14px;
+}
+
+.nirvana-terminology-footer {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 14px 16px;
+
+  border-top: 1px solid rgba(20, 65, 54, 0.08);
+}
+
+.nirvana-terminology-footer span {
+  font-size: 13px;
+  color: #687973;
+}
+
+.nirvana-terminology-done {
+  min-width: 90px;
+  min-height: 42px;
+
+  padding: 8px 18px;
+
+  border: 0;
+  border-radius: 10px;
+
+  background: #124c3e;
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+@keyframes nirvana-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Make the main clinical content slightly denser on wider screens. */
+
+@media (min-width: 901px) {
+  .clinical-workspace {
+    padding-left: clamp(12px, 1.5vw, 24px);
+    padding-right: clamp(12px, 1.5vw, 24px);
+  }
+
+  .clinical-workspace .form-grid {
+    column-gap: clamp(8px, 1vw, 16px);
+  }
+}
+
+/* Tablet */
+
+@media (max-width: 900px) and (min-width: 641px) {
+  .nirvana-terminology-panel {
+    width: 350px;
+    max-width: 44vw;
+  }
+}
+
+/* Phone */
+
+@media (max-width: 640px) {
+  .nirvana-terminology-overlay {
+    align-items: flex-end;
+  }
+
+  .nirvana-terminology-panel {
+    width: calc(100vw - 16px);
+    max-width: none;
+
+    height: min(72vh, 620px);
+
+    margin: 0 8px 8px;
+
+    border-radius: 20px;
+  }
+
+  .nirvana-terminology-header {
+    padding: 16px;
+  }
+
+  .nirvana-terminology-search-wrap {
+    margin: 12px;
+  }
+
+  .nirvana-terminology-option {
+    min-height: 50px;
+  }
+}
