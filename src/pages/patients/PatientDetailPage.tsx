@@ -26,10 +26,23 @@ type ClinicalEncounterSummary = {
   diagnosis: string | null
   ayurvedic_diagnosis: string | null
   treatment_plan: string | null
+  modern_structured_diagnoses: string[]
+  diagnosis_coding_metadata: {
+    concepts?: Array<{
+      code?: unknown
+      display_name?: unknown
+    }>
+  }
   created_at: string
 }
 
 function formatEncounterDate(value: string) {
+  // Do not invent a time when the database contains only a calendar date.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [year, month, day] = value.split('-')
+    return `${day}/${month}/${year}`
+  }
+
   return new Date(value).toLocaleString('en-GB', {
     day: '2-digit',
     month: '2-digit',
@@ -40,7 +53,16 @@ function formatEncounterDate(value: string) {
 }
 
 function getDiagnosisSummary(encounter: ClinicalEncounterSummary) {
-  const modern = (encounter.diagnosis ?? '').trim()
+  const modernConcepts =
+    encounter.diagnosis_coding_metadata?.concepts
+      ?.map((concept) => String(concept.display_name ?? '').trim())
+      .filter(Boolean) ?? []
+
+  const modern =
+    modernConcepts.length > 0
+      ? modernConcepts.join(', ')
+      : (encounter.diagnosis ?? '').trim()
+
   const ayurvedic = (encounter.ayurvedic_diagnosis ?? '').trim()
 
   if (modern && ayurvedic) return `${modern} • ${ayurvedic}`
@@ -105,10 +127,10 @@ export default function PatientDetailPage() {
       const { data, error } = await supabase
         .from('clinical_encounters')
         .select(
-          'id, encounter_date, encounter_type, status, diagnosis, ayurvedic_diagnosis, treatment_plan, created_at'
+          'id, encounter_date, encounter_type, status, diagnosis, ayurvedic_diagnosis, treatment_plan, modern_structured_diagnoses, diagnosis_coding_metadata, created_at'
         )
         .eq('patient_id', id)
-        .order('created_at', { ascending: false })
+        .order('encounter_date', { ascending: false })
 
       if (error) {
         setEncounterError(error.message)
@@ -359,7 +381,7 @@ export default function PatientDetailPage() {
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <strong className="encounter-history-date">
-                    {formatEncounterDate(encounter.created_at)}
+                    {formatEncounterDate(encounter.encounter_date)}
                   </strong>
 
                   <div
