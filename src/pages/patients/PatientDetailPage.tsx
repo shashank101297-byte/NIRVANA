@@ -18,13 +18,45 @@ type Patient = {
   created_at: string
 }
 
+type ClinicalEncounterSummary = {
+  id: string
+  encounter_date: string
+  encounter_type: string
+  status: string
+  diagnosis: string | null
+  ayurvedic_diagnosis: string | null
+  treatment_plan: string | null
+  created_at: string
+}
+
+function formatEncounterDate(value: string) {
+  return new Date(value).toLocaleString('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function getDiagnosisSummary(encounter: ClinicalEncounterSummary) {
+  const modern = (encounter.diagnosis ?? '').trim()
+  const ayurvedic = (encounter.ayurvedic_diagnosis ?? '').trim()
+
+  if (modern && ayurvedic) return `${modern} • ${ayurvedic}`
+  return modern || ayurvedic || 'Diagnosis not recorded.'
+}
+
 export default function PatientDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
   const [patient, setPatient] = useState<Patient | null>(null)
+  const [encounters, setEncounters] = useState<ClinicalEncounterSummary[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingEncounters, setLoadingEncounters] = useState(true)
   const [error, setError] = useState('')
+  const [encounterError, setEncounterError] = useState('')
   const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
@@ -57,6 +89,38 @@ export default function PatientDetailPage() {
     }
 
     loadPatient()
+  }, [id])
+
+  useEffect(() => {
+    async function loadEncounters() {
+      if (!id) {
+        setEncounters([])
+        setLoadingEncounters(false)
+        return
+      }
+
+      setLoadingEncounters(true)
+      setEncounterError('')
+
+      const { data, error } = await supabase
+        .from('clinical_encounters')
+        .select(
+          'id, encounter_date, encounter_type, status, diagnosis, ayurvedic_diagnosis, treatment_plan, created_at'
+        )
+        .eq('patient_id', id)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        setEncounterError(error.message)
+        setEncounters([])
+      } else {
+        setEncounters((data ?? []) as ClinicalEncounterSummary[])
+      }
+
+      setLoadingEncounters(false)
+    }
+
+    loadEncounters()
   }, [id])
 
   async function restorePatient() {
@@ -251,13 +315,85 @@ export default function PatientDetailPage() {
         </div>
       </section>
 
-      <div className="development-note">
-        <strong>NIRVANA Foundation V1</strong>
-        <span>
-          Clinical history, encounters, investigations and treatment records
-          will be connected to this patient in the next development phase.
-        </span>
-      </div>
+      <section className="clinical-panel">
+        <div className="clinical-section-header">
+          <div>
+            <p className="eyebrow">LONGITUDINAL RECORD</p>
+            <h2>Clinical History</h2>
+          </div>
+
+          <span className="development-note">
+            {encounters.length}{' '}
+            {encounters.length === 1 ? 'encounter' : 'encounters'}
+          </span>
+        </div>
+
+        {loadingEncounters ? (
+          <div className="account-card">
+            <p>Loading clinical history...</p>
+          </div>
+        ) : encounterError ? (
+          <div className="nirvana-error" role="alert">
+            {encounterError}
+          </div>
+        ) : encounters.length === 0 ? (
+          <div className="account-card">
+            <p className="eyebrow">CLINICAL HISTORY</p>
+            <h3>No clinical encounters recorded</h3>
+            <p>
+              Clinical encounters saved for this patient will appear here
+              automatically.
+            </p>
+          </div>
+        ) : (
+          <div className="encounter-history-list">
+            {encounters.map((encounter, index) => (
+              <NavLink
+                key={encounter.id}
+                to={`/clinical/${patient.id}/encounter/${encounter.id}`}
+                className="encounter-history-item"
+              >
+                <span className="encounter-history-number">
+                  {index + 1}
+                </span>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <strong className="encounter-history-date">
+                    {formatEncounterDate(encounter.created_at)}
+                  </strong>
+
+                  <div
+                    style={{
+                      marginTop: 4,
+                      color: 'var(--text-h)',
+                    }}
+                  >
+                    <strong>
+                      {encounter.encounter_type || 'Clinical encounter'}
+                    </strong>
+                    {' · '}
+                    {encounter.status || 'Open'}
+                  </div>
+
+                  <div style={{ marginTop: 4, fontSize: 14 }}>
+                    <strong>Diagnosis:</strong>{' '}
+                    {getDiagnosisSummary(encounter)}
+                  </div>
+
+                  {encounter.treatment_plan?.trim() && (
+                    <div style={{ marginTop: 4, fontSize: 14 }}>
+                      <strong>Treatment:</strong>{' '}
+                      {encounter.treatment_plan.trim()}
+                    </div>
+                  )}
+                </div>
+
+                <span aria-hidden="true">→</span>
+              </NavLink>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   )
 }
