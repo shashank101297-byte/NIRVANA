@@ -506,11 +506,14 @@ export default function ClinicalWorkspacePage() {
               </div>
 
               <form onSubmit={handleCreateVisit} className="clinical-visit-form">
-            <section className="clinical-form-section">
-              <div className="clinical-section-header">
-                <p className="eyebrow">CLINICAL DOCUMENTATION</p>
-                <h3>History & Examination</h3>
-              </div>
+            <details className="clinical-form-section clinical-collapsible" open>
+              <summary className="clinical-collapsible-summary">
+                <div>
+                  <p className="eyebrow">CLINICAL DOCUMENTATION</p>
+                  <h3>History & Examination</h3>
+                </div>
+                <span className="clinical-section-toggle">⌄</span>
+              </summary>
 
               <div className="form-field form-field-full">
                 <label htmlFor="history-present-illness">History of Present Illness</label>
@@ -579,13 +582,16 @@ export default function ClinicalWorkspacePage() {
                   placeholder="General examination, vitals, systemic examination and relevant findings..."
                 />
               </div>
-            </section>
+            </details>
 
-            <section className="clinical-form-section">
-              <div className="clinical-section-header">
-                <p className="eyebrow">AYURVEDIC ASSESSMENT</p>
-                <h3>Ayurvedic Clinical Assessment</h3>
-              </div>
+            <details className="clinical-form-section clinical-collapsible">
+              <summary className="clinical-collapsible-summary">
+                <div>
+                  <p className="eyebrow">AYURVEDIC ASSESSMENT</p>
+                  <h3>Ayurvedic Clinical Assessment</h3>
+                </div>
+                <span className="clinical-section-toggle">⌄</span>
+              </summary>
 
               <div className="form-grid">
                 <div className="form-field">
@@ -649,13 +655,16 @@ export default function ClinicalWorkspacePage() {
                   />
                 </div>
               </div>
-            </section>
+            </details>
 
-            <section className="clinical-form-section">
-              <div className="clinical-section-header">
-                <p className="eyebrow">MODERN ASSESSMENT</p>
-                <h3>Assessment & Investigations</h3>
-              </div>
+            <details className="clinical-form-section clinical-collapsible">
+              <summary className="clinical-collapsible-summary">
+                <div>
+                  <p className="eyebrow">MODERN ASSESSMENT</p>
+                  <h3>Assessment & Investigations</h3>
+                </div>
+                <span className="clinical-section-toggle">⌄</span>
+              </summary>
 
               <div className="form-grid">
                 <div className="form-field form-field-full">
@@ -699,13 +708,16 @@ export default function ClinicalWorkspacePage() {
                   />
                 </div>
               </div>
-            </section>
+            </details>
 
-            <section className="clinical-form-section">
-              <div className="clinical-section-header">
-                <p className="eyebrow">MANAGEMENT</p>
-                <h3>Treatment & Follow-up</h3>
-              </div>
+            <details className="clinical-form-section clinical-collapsible">
+              <summary className="clinical-collapsible-summary">
+                <div>
+                  <p className="eyebrow">MANAGEMENT</p>
+                  <h3>Treatment & Follow-up</h3>
+                </div>
+                <span className="clinical-section-toggle">⌄</span>
+              </summary>
 
               <div className="form-field form-field-full">
                 <label htmlFor="treatment-plan">Treatment / Plan</label>
@@ -728,8 +740,9 @@ export default function ClinicalWorkspacePage() {
                   placeholder="Follow-up date, precautions, investigations, warning signs and instructions..."
                 />
               </div>
-            </section>
-<div className="form-actions">
+            </details>
+
+            <div className="form-actions clinical-save-bar">
                   <button type="submit" className="primary-button" disabled={savingVisit}>
                     {savingVisit ? 'Saving...' : 'Save Visit'}
                   </button>
