@@ -22,6 +22,30 @@ type Patient = {
   full_name: string
 }
 
+function formatEncounterDate(value: string) {
+  const dateOnly = /^(\d{4}-\d{2}-\d{2})$/.exec(value)
+
+  if (dateOnly) {
+    const [year, month, day] = dateOnly[1].split('-')
+    return `${day}/${month}/${year}`
+  }
+
+  const midnightUtc = /^(\d{4}-\d{2}-\d{2})T00:00:00(?:\.\d+)?(?:Z|\+00:00)$/.exec(value)
+
+  if (midnightUtc) {
+    const [year, month, day] = midnightUtc[1].split('-')
+    return `${day}/${month}/${year}`
+  }
+
+  return new Date(value).toLocaleString('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
 export default function ClinicalEncountersPage() {
   const { patientId } = useParams<{ patientId: string }>()
   const navigate = useNavigate()
@@ -224,15 +248,7 @@ export default function ClinicalEncountersPage() {
                 {["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"][index] ?? `${index + 1}.`}
               </span>
 
-              <span className="encounter-history-date">
-                {new Date(encounter.encounter_date).toLocaleString("en-GB", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
+              <span className="encounter-history-date">{formatEncounterDate(encounter.encounter_date)}</span>
             </NavLink>
           ))}
         </div>
