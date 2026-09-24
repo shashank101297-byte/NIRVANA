@@ -1275,3 +1275,230 @@ body {
   width: 100%;
 }
 
+
+
+/* Appointment search and filters */
+.appointment-filters {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) 180px 180px;
+  gap: 12px;
+  padding: 0 24px 20px;
+  align-items: center;
+}
+
+.appointment-filters input,
+.appointment-filters select {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 1px solid #d8e1dd;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #173f35;
+  padding: 10px 14px;
+  font: inherit;
+}
+
+.appointment-filters input:focus,
+.appointment-filters select:focus {
+  outline: none;
+  border-color: #174f43;
+  box-shadow: 0 0 0 3px rgba(23, 79, 67, 0.10);
+}
+
+@media (max-width: 760px) {
+  .appointment-filters {
+    grid-template-columns: 1fr;
+    padding: 0 16px 16px;
+  }
+}
+
+
+/* Appointment table vertical alignment fix */
+.appointments-list .patients-table tbody td {
+  vertical-align: middle;
+}
+
+.appointments-list .patients-table tbody td strong {
+  display: inline-block;
+  line-height: 1.35;
+  margin-bottom: 2px;
+}
+
+
+/* Mobile appointment table - keep all columns inside viewport */
+@media (max-width: 768px) {
+  .appointments-list .patients-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .appointments-list .patients-table {
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+  }
+
+  .appointments-list .patients-table th,
+  .appointments-list .patients-table td {
+    padding: 14px 8px;
+    overflow: hidden;
+    word-break: break-word;
+  }
+
+  .appointments-list .patients-table th:nth-child(1),
+  .appointments-list .patients-table td:nth-child(1) {
+    width: 5%;
+    padding-left: 8px;
+    padding-right: 4px;
+  }
+
+  .appointments-list .patients-table th:nth-child(2),
+  .appointments-list .patients-table td:nth-child(2) {
+    width: 31%;
+  }
+
+  .appointments-list .patients-table th:nth-child(3),
+  .appointments-list .patients-table td:nth-child(3) {
+    width: 12%;
+  }
+
+  .appointments-list .patients-table th:nth-child(4),
+  .appointments-list .patients-table td:nth-child(4) {
+    width: 20%;
+  }
+
+  .appointments-list .patients-table th:nth-child(5),
+  .appointments-list .patients-table td:nth-child(5) {
+    width: 20%;
+  }
+
+  .appointments-list .patients-table th:nth-child(6),
+  .appointments-list .patients-table td:nth-child(6) {
+    width: 12%;
+  }
+
+  .appointments-list .patients-table td strong {
+    white-space: nowrap;
+  }
+
+  .appointments-list .appointment-actions-menu {
+    right: 0;
+    left: auto;
+  }
+}
+
+/* Appointment action menu - viewport safe positioning */
+.appointments-list .appointment-actions-menu {
+  position: relative;
+  z-index: 100;
+}
+
+.appointments-list .appointment-actions-menu[open] {
+  z-index: 1001;
+}
+
+.appointments-list .appointment-actions-dropdown {
+  position: fixed !important;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+
+  z-index: 9999;
+
+  width: 190px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+
+  padding: 10px;
+  box-sizing: border-box;
+
+  overflow-y: auto;
+}
+
+.appointments-list .appointment-actions-dropdown .secondary-button,
+.appointments-list .appointment-actions-dropdown select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+
+/* Final appointment action menu viewport positioning */
+.appointments-list .appointment-actions-menu {
+  position: relative;
+  z-index: 20;
+}
+
+.appointments-list .appointment-actions-menu[open] {
+  z-index: 9999;
+}
+
+.appointments-list .appointment-actions-dropdown {
+  position: fixed !important;
+  width: 220px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  box-sizing: border-box;
+  overflow-y: auto;
+  z-index: 10000;
+}
+
+.appointments-list .appointment-actions-dropdown .secondary-button,
+.appointments-list .appointment-actions-dropdown select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+
+
+/* =========================================================
+   NIRVANA - 5 ITEM BOTTOM NAVIGATION
+   Home | Patients | Appointments | Clinical | Profile
+   ========================================================= */
+
+.bottom-nav {
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 0;
+  width: min(620px, calc(100% - 24px));
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.bottom-nav a {
+  flex: 1 1 20%;
+  min-width: 0;
+  width: 20%;
+  padding: 8px 3px;
+  box-sizing: border-box;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bottom-nav a span {
+  display: inline;
+  margin-right: 2px;
+}
+
+@media (max-width: 700px) {
+  .bottom-nav {
+    width: calc(100% - 20px);
+    padding: 7px 5px;
+  }
+
+  .bottom-nav a {
+    flex: 1 1 20%;
+    width: 20%;
+    padding: 8px 2px;
+    font-size: 11px;
+  }
+}

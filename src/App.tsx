@@ -403,6 +403,11 @@ function ProtectedApp({
             Patients
           </NavLink>
 
+          <NavLink to="/appointments">
+            <span>📅</span>
+            Appointments
+          </NavLink>
+
           <NavLink to="/clinical">
             <span>🩺</span>
             Clinical
