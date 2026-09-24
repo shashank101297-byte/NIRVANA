@@ -41,17 +41,11 @@ const appointmentTypes = [
 const appointmentStatuses = [
   'Scheduled',
   'Confirmed',
+  'In Progress',
   'Completed',
   'Cancelled',
   'No-show',
 ]
-
-function formatDateTime(value: string) {
-  return new Date(value).toLocaleString('en-IN', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  })
-}
 
 function toLocalDateTimeValue(date: Date) {
   const offset = date.getTimezoneOffset()
@@ -70,6 +64,9 @@ export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [patients, setPatients] = useState<Patient[]>([])
   const [patientSearch, setPatientSearch] = useState('')
+  const [appointmentSearch, setAppointmentSearch] = useState("")
+  const [appointmentTypeFilter, setAppointmentTypeFilter] = useState("All")
+  const [appointmentStatusFilter, setAppointmentStatusFilter] = useState("All")
   const [selectedPatientId, setSelectedPatientId] = useState('')
 
   const [scheduledStart, setScheduledStart] = useState(
@@ -86,6 +83,7 @@ export default function AppointmentsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
+  const [editingAppointmentId, setEditingAppointmentId] = useState<string | null>(null)
   const [error, setError] = useState('')
 
   async function loadAppointments() {
@@ -170,7 +168,31 @@ export default function AppointmentsPage() {
     (patient) => patient.id === selectedPatientId,
   )
 
-  function resetForm() {
+  const filteredAppointments = appointments.filter((appointment) => {
+    const patient = Array.isArray(appointment.patients)
+      ? appointment.patients[0]
+      : appointment.patients
+    const query = appointmentSearch.trim().toLowerCase()
+
+    const matchesSearch =
+      !query ||
+      patient?.full_name?.toLowerCase().includes(query) ||
+      patient?.patient_code?.toLowerCase().includes(query) ||
+      patient?.mobile?.toLowerCase().includes(query) ||
+      appointment.reason?.toLowerCase().includes(query)
+
+    const matchesType =
+      appointmentTypeFilter === "All" ||
+      appointment.appointment_type === appointmentTypeFilter
+
+    const matchesStatus =
+      appointmentStatusFilter === "All" ||
+      appointment.status === appointmentStatusFilter
+
+    return matchesSearch && matchesType && matchesStatus
+  })
+
+function resetForm() {
     setPatientSearch('')
     setSelectedPatientId('')
     setScheduledStart(toLocalDateTimeValue(new Date()))
@@ -180,6 +202,54 @@ export default function AppointmentsPage() {
     setAppointmentType('OPD')
     setReason('')
     setNotes('')
+    setEditingAppointmentId(null)
+  }
+
+  function startEditingAppointment(appointment: Appointment) {
+    setEditingAppointmentId(appointment.id)
+    setSelectedPatientId(appointment.patient_id)
+
+    const patient = Array.isArray(appointment.patients)
+      ? appointment.patients[0]
+      : appointment.patients
+
+    setPatientSearch(
+      patient?.full_name
+        ? `${patient.patient_code} - ${patient.full_name}`
+        : '',
+    )
+
+    setScheduledStart(
+      toLocalDateTimeValue(new Date(appointment.scheduled_start)),
+    )
+    setScheduledEnd(
+      toLocalDateTimeValue(new Date(appointment.scheduled_end)),
+    )
+    setAppointmentType(appointment.appointment_type)
+    setReason(appointment.reason ?? '')
+    setNotes(appointment.notes ?? '')
+    setError('')
+    setShowForm(true)
+
+  window.setTimeout(() => {
+    const form = document.getElementById("appointment-form")
+
+    if (form) {
+      form.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      })
+    }
+  }, 50)
+
+    // Close the action menu after the edit form has opened.
+    requestAnimationFrame(() => {
+      document
+        .querySelectorAll(".appointment-actions-menu[open]")
+        .forEach((menu) => {
+          (menu as HTMLDetailsElement).open = false
+        })
+    })
   }
 
   async function handleCreateAppointment(
@@ -216,6 +286,38 @@ export default function AppointmentsPage() {
 
     setSaving(true)
 
+  // Prevent overlapping appointments for the same patient.
+  let overlapQuery = supabase
+    .from('appointments')
+    .select('id')
+    .eq('organization_id', activeOrganizationId)
+    .eq('patient_id', selectedPatientId)
+    .in('status', ['Scheduled', 'Confirmed'])
+    .lt('scheduled_start', end.toISOString())
+    .gt('scheduled_end', start.toISOString())
+
+  if (editingAppointmentId) {
+    overlapQuery = overlapQuery.neq('id', editingAppointmentId)
+  }
+
+  const { data: overlappingAppointments, error: overlapError } =
+    await overlapQuery
+
+  if (overlapError) {
+    setError(overlapError.message)
+    setSaving(false)
+    return
+  }
+
+  if (overlappingAppointments && overlappingAppointments.length > 0) {
+    setError(
+      'This patient already has another appointment overlapping this time.'
+    )
+    setSaving(false)
+    return
+  }
+
+
     const {
       data: userData,
       error: userError,
@@ -230,22 +332,43 @@ export default function AppointmentsPage() {
       return
     }
 
-    const { error: insertError } = await supabase
-      .from('appointments')
-      .insert({
-        organization_id: activeOrganizationId,
-        patient_id: selectedPatientId,
-        created_by: userData.user.id,
-        scheduled_start: start.toISOString(),
-        scheduled_end: end.toISOString(),
-        appointment_type: appointmentType,
-        status: 'Scheduled',
-        reason: reason.trim(),
-        notes: notes.trim(),
-      })
+    let saveError: { message: string } | null = null
 
-    if (insertError) {
-      setError(insertError.message)
+    if (editingAppointmentId) {
+      const { error: updateError } = await supabase
+        .from('appointments')
+        .update({
+          patient_id: selectedPatientId,
+          scheduled_start: start.toISOString(),
+          scheduled_end: end.toISOString(),
+          appointment_type: appointmentType,
+          reason: reason.trim(),
+          notes: notes.trim(),
+        })
+        .eq('id', editingAppointmentId)
+        .eq('organization_id', activeOrganizationId)
+
+      saveError = updateError
+    } else {
+      const { error: insertError } = await supabase
+        .from('appointments')
+        .insert({
+          organization_id: activeOrganizationId,
+          patient_id: selectedPatientId,
+          created_by: userData.user.id,
+          scheduled_start: start.toISOString(),
+          scheduled_end: end.toISOString(),
+          appointment_type: appointmentType,
+          status: 'Scheduled',
+          reason: reason.trim(),
+          notes: notes.trim(),
+        })
+
+      saveError = insertError
+    }
+
+    if (saveError) {
+      setError(saveError.message)
       setSaving(false)
       return
     }
@@ -255,6 +378,16 @@ export default function AppointmentsPage() {
     setSaving(false)
 
     await loadAppointments()
+  }
+
+  async function cancelAppointment(appointmentId: string) {
+    const confirmed = window.confirm(
+      'Are you sure you want to cancel this appointment?'
+    )
+
+    if (!confirmed) return
+
+    await updateStatus(appointmentId, 'Cancelled')
   }
 
   async function updateStatus(
@@ -323,11 +456,11 @@ export default function AppointmentsPage() {
       )}
 
       {showForm && (
-        <section className="appointments-form-card">
+        <section id="appointment-form" className="appointments-form-card">
           <div className="module-header">
             <div>
-              <p className="eyebrow">NEW APPOINTMENT</p>
-              <h2>Schedule patient visit</h2>
+              <p className="eyebrow">{editingAppointmentId ? 'EDIT APPOINTMENT' : 'NEW APPOINTMENT'}</p>
+              <h2>{editingAppointmentId ? 'Edit appointment' : 'Schedule patient visit'}</h2>
             </div>
           </div>
 
@@ -491,7 +624,7 @@ export default function AppointmentsPage() {
                 className="primary-button"
                 disabled={saving}
               >
-                {saving ? 'Saving...' : 'Create Appointment'}
+                {saving ? 'Saving...' : editingAppointmentId ? 'Save Changes' : 'Create Appointment'}
               </button>
             </div>
           </form>
@@ -502,13 +635,47 @@ export default function AppointmentsPage() {
         <div className="module-header">
           <div>
             <p className="eyebrow">SCHEDULE</p>
-            <h2>Appointments</h2>
           </div>
         </div>
 
+    <div className="appointment-filters">
+      <input
+        type="search"
+        placeholder="Search patient, code, mobile or reason..."
+        value={appointmentSearch}
+        onChange={(event) => setAppointmentSearch(event.target.value)}
+      />
+
+      <select
+        value={appointmentTypeFilter}
+        onChange={(event) => setAppointmentTypeFilter(event.target.value)}
+      >
+        <option value="All">All Types</option>
+        {appointmentTypes.map((type) => (
+          <option key={type} value={type}>
+            {type}
+          </option>
+        ))}
+      </select>
+
+      <select
+        value={appointmentStatusFilter}
+        onChange={(event) =>
+          setAppointmentStatusFilter(event.target.value)
+        }
+      >
+        <option value="All">All Statuses</option>
+        {appointmentStatuses.map((status) => (
+          <option key={status} value={status}>
+            {status}
+          </option>
+        ))}
+      </select>
+    </div>
+
         {loading ? (
           <p>Loading appointments...</p>
-        ) : appointments.length === 0 ? (
+        ) : filteredAppointments.length === 0 ? (
           <div className="empty-state">
             <h3>No appointments yet</h3>
             <p>
@@ -520,7 +687,7 @@ export default function AppointmentsPage() {
   {(() => {
     const grouped = new Map<string, Appointment[]>();
 
-    [...appointments]
+    [...filteredAppointments]
       .sort(
         (a, b) =>
           new Date(a.scheduled_start).getTime() -
@@ -537,7 +704,10 @@ export default function AppointmentsPage() {
 
     return Array.from(grouped.entries()).map(
       ([patientId, patientAppointments]) => {
-        const patient = patientAppointments[0]?.patients;
+        const patientData = patientAppointments[0]?.patients
+          const patient = Array.isArray(patientData)
+            ? patientData[0]
+            : patientData;
 
         return (
           <div className="patient-list-card" key={patientId}>
@@ -621,10 +791,169 @@ export default function AppointmentsPage() {
                         </td>
 
                         <td>
-                          <details className="appointment-actions-menu">
+                          <details
+  className="appointment-actions-menu"
+  onToggle={(event) => {
+    const details = event.currentTarget;
+    const summary = details.querySelector(
+      "summary"
+    ) as HTMLElement | null;
+    const dropdown = details.querySelector(
+      ".appointment-actions-dropdown"
+    ) as HTMLElement | null;
+
+    if (!details.open || !summary || !dropdown) {
+      return;
+    }
+
+    // Close every other appointment action menu.
+    document
+      .querySelectorAll(".appointment-actions-menu[open]")
+      .forEach((other) => {
+        if (other !== details) {
+          (other as HTMLDetailsElement).open = false;
+        }
+      });
+
+    requestAnimationFrame(() => {
+        const summary = details.querySelector(
+          "summary"
+        ) as HTMLElement | null;
+
+        if (!summary) return;
+
+        const trigger = summary.getBoundingClientRect();
+        const dropdown = details.querySelector(
+          ".appointment-actions-dropdown"
+        ) as HTMLElement | null;
+
+        if (!dropdown) return;
+
+        dropdown.style.position = "fixed";
+        dropdown.style.left = "auto";
+        dropdown.style.right = "auto";
+        dropdown.style.top = "auto";
+        dropdown.style.bottom = "auto";
+
+        const gap = 8;
+        const padding = 12;
+
+        // Space reserved for the fixed bottom navigation.
+        const bottomNavigationSpace = 120;
+
+        const menuWidth = Math.min(
+          dropdown.offsetWidth || 220,
+          window.innerWidth - padding * 2
+        );
+
+        const menuHeight = dropdown.offsetHeight;
+
+        // Keep menu horizontally inside the tablet viewport.
+        const left = Math.max(
+          padding,
+          Math.min(
+            trigger.right - menuWidth,
+            window.innerWidth - menuWidth - padding
+          )
+        );
+
+        // Calculate usable space above and below the trigger.
+        const spaceBelow =
+          window.innerHeight -
+          bottomNavigationSpace -
+          padding -
+          trigger.bottom -
+          gap;
+
+        const spaceAbove =
+          trigger.top -
+          padding -
+          gap;
+
+        let top: number;
+
+        // Downward only if the complete menu fits.
+        if (spaceBelow >= menuHeight) {
+          top = trigger.bottom + gap;
+        }
+
+        // Otherwise open upward if the complete menu fits.
+        else if (spaceAbove >= menuHeight) {
+          top = trigger.top - menuHeight - gap;
+        }
+
+        // If neither side fully fits, use the side with more room.
+        else if (spaceAbove > spaceBelow) {
+          top = trigger.top - menuHeight - gap;
+        } else {
+          top = trigger.bottom + gap;
+        }
+
+        // Absolute safety boundary.
+        const minTop = padding;
+        const maxTop =
+          window.innerHeight -
+          bottomNavigationSpace -
+          menuHeight -
+          padding;
+
+        top = Math.max(
+          minTop,
+          Math.min(top, maxTop)
+        );
+
+        dropdown.style.left = `${left}px`;
+        dropdown.style.top = `${top}px`;
+      });
+  }}
+>
                               <summary aria-label="Appointment actions">•••</summary>
 
-                              <div className="appointment-actions-dropdown">
+                              <div className="appointment-actions-dropdown">            
+              {appointment.status !== 'Cancelled' &&
+                appointment.status !== 'Completed' &&
+            appointment.status !== 'No-show' && (
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={(event) => {
+                      void cancelAppointment(appointment.id)
+                      const details = event.currentTarget.closest('details')
+                      if (details) {
+                        details.open = false
+                      }
+                    }}
+                  >
+                    Cancel Appointment
+                  </button>
+                )}
+
+{appointment.status !== 'Cancelled' &&
+  appointment.status !== 'Completed' &&
+  appointment.status !== 'No-show' && (
+  <button
+    type="button"
+    className="secondary-button"
+    onClick={() => startEditingAppointment(appointment)}
+  >
+    Edit Appointment
+  </button>
+)}
+            {appointment.status !== 'Cancelled' &&
+              appointment.status !== 'Completed' &&
+              appointment.status !== 'No-show' && (
+                <NavLink
+                  to={`/clinical/${appointment.patient_id}?newVisit=true&appointmentId=${appointment.id}`}
+                  className="secondary-button"
+                >
+                  Start Consultation
+                </NavLink>
+              )}
+
+
+              
+
+
                                 <NavLink
                                   to={`/patients/${appointment.patient_id}`}
                                   className="secondary-button"
@@ -632,21 +961,25 @@ export default function AppointmentsPage() {
                                   Patient
                                 </NavLink>
 
-                                <select
-                                  value={appointment.status}
-                                  onChange={(event) =>
-                                    void updateStatus(
-                                      appointment.id,
-                                      event.target.value
-                                    )
-                                  }
-                                >
-                                  {appointmentStatuses.map((status) => (
-                                    <option key={status} value={status}>
-                                      {status}
-                                    </option>
-                                  ))}
-                                </select>
+                                {appointment.status !== 'Cancelled' &&
+                                 appointment.status !== 'Completed' &&
+                                 appointment.status !== 'No-show' && (
+                                 <select
+                                   value={appointment.status}
+                                   onChange={(event) =>
+                                     void updateStatus(
+                                       appointment.id,
+                                       event.target.value
+                                     )
+                                   }
+                                 >
+                                   {appointmentStatuses.map((status) => (
+                                     <option key={status} value={status}>
+                                       {status}
+                                     </option>
+                                   ))}
+                                 </select>
+                               )}
                               </div>
                             </details>
                           </td>
@@ -663,6 +996,9 @@ export default function AppointmentsPage() {
   })()}
 </div>
       )}
+    <p className="appointments-order-note">
+      Showing appointments in chronological order (oldest to newest)
+    </p>
     </section>
     </main>
   )

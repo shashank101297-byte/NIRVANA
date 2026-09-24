@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { NavLink, useNavigate, useParams } from 'react-router-dom'
+import { NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useOrganization } from '../../context/OrganizationContext'
 
@@ -31,6 +31,8 @@ type ClinicalEncounter = {
 
 export default function ClinicalWorkspacePage() {
   const { patientId } = useParams<{ patientId: string }>()
+  const [searchParams] = useSearchParams()
+  const appointmentId = searchParams.get("appointmentId")
   const navigate = useNavigate()
   const { activeOrganization, activeOrganizationId, loading: organizationLoading } = useOrganization()
 
@@ -167,6 +169,19 @@ export default function ClinicalWorkspacePage() {
   }
 
   useEffect(() => {
+    if (patientId && searchParams.get('newVisit') === 'true') {
+      setShowNewVisit(true)
+
+      if (appointmentId) {
+        void supabase
+          .from('appointments')
+          .update({ status: 'In Progress' })
+          .eq('id', appointmentId)
+          .eq('patient_id', patientId)
+          .eq('organization_id', activeOrganizationId)
+      }
+    }
+
     if (!activeOrganizationId) {
       setSelectedPatient(null)
       setPatientResults([])
@@ -177,11 +192,16 @@ export default function ClinicalWorkspacePage() {
     if (patientId) {
       void loadSelectedPatient(patientId)
       void loadEncounters(patientId)
+
+      if (appointmentId) {
+        setShowNewVisit(true)
+      }
+
       return
     }
 
     void loadPatientResults()
-  }, [activeOrganizationId, patientId, search])
+  }, [activeOrganizationId, patientId, search, searchParams])
 
 
   const activePatientSummary = useMemo(() => {
@@ -223,6 +243,7 @@ export default function ClinicalWorkspacePage() {
       .insert({
         organization_id: activeOrganizationId,
         patient_id: selectedPatient.id,
+            appointment_id: appointmentId || null,
         created_by: userData.user.id,
         encounter_date: new Date(encounterDate).toISOString(),
         encounter_type: encounterType,
@@ -257,6 +278,21 @@ export default function ClinicalWorkspacePage() {
       setError(insertError.message)
       setSavingVisit(false)
       return
+    }
+
+    if (appointmentId) {
+      const { error: appointmentUpdateError } = await supabase
+        .from('appointments')
+        .update({ status: 'Completed' })
+        .eq('id', appointmentId)
+        .eq('patient_id', selectedPatient.id)
+        .eq('organization_id', activeOrganizationId)
+
+      if (appointmentUpdateError) {
+        setError(
+          `Visit saved, but the appointment status could not be updated: ${appointmentUpdateError.message}`,
+        )
+      }
     }
 
     setEncounterDate(new Date().toISOString().slice(0, 10))
