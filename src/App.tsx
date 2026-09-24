@@ -280,6 +280,82 @@ function OrganizationSwitcher() {
   )
 }
 
+function Sidebar({
+  open,
+  onClose,
+}: {
+  open: boolean
+  onClose: () => void
+}) {
+  const navItems = [
+    { to: '/', icon: '⌂', label: 'Dashboard', end: true },
+    { to: '/patients', icon: '👥', label: 'Patients' },
+    { to: '/appointments', icon: '📅', label: 'Appointments' },
+    { to: '/clinical', icon: '🩺', label: 'Clinical' },
+    { to: '/research', icon: '📚', label: 'Research' },
+    { to: '/settings', icon: '⚙️', label: 'Settings' },
+  ]
+
+  return (
+    <>
+      <div
+        className={`sidebar-overlay ${open ? 'sidebar-overlay-open' : ''}`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      <aside className={`nirvana-sidebar ${open ? 'nirvana-sidebar-open' : ''}`}>
+        <div className="sidebar-brand">
+          <span className="sidebar-brand-mark">N</span>
+          <div>
+            <strong>NIRVANA</strong>
+            <span>Healthcare Platform</span>
+          </div>
+        </div>
+
+        <div className="sidebar-section-label">WORKSPACE</div>
+
+        <nav className="sidebar-nav" aria-label="Main navigation">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              onClick={onClose}
+              className={({ isActive }) =>
+                `sidebar-nav-item ${isActive ? 'sidebar-nav-item-active' : ''}`
+              }
+            >
+              <span className="sidebar-nav-icon">{item.icon}</span>
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="sidebar-divider" />
+
+        <div className="sidebar-section-label">ACCOUNT</div>
+
+        <NavLink
+          to="/profile"
+          onClick={onClose}
+          className={({ isActive }) =>
+            `sidebar-nav-item ${isActive ? 'sidebar-nav-item-active' : ''}`
+          }
+        >
+          <span className="sidebar-nav-icon">👤</span>
+          <span>Profile</span>
+        </NavLink>
+
+        <div className="sidebar-footer">
+          <span>NIRVANA</span>
+          <small>Foundation V1</small>
+        </div>
+      </aside>
+    </>
+  )
+}
+
 function ProtectedApp({
   session,
   onSignOut,
@@ -289,6 +365,8 @@ function ProtectedApp({
 }) {
   const email = session.user.email ?? 'Authenticated user'
   const { activeOrganization, organizations, loading } = useOrganization()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
   const hasOrganizationAccess = organizations.length > 0 && !!activeOrganization
 
   if (loading) {
@@ -300,6 +378,7 @@ function ProtectedApp({
             <span>NIRVANA</span>
           </NavLink>
         </header>
+
         <main className="content">
           <div className="page">
             <p className="eyebrow">ORGANIZATION</p>
@@ -312,7 +391,28 @@ function ProtectedApp({
 
   return (
     <div className="app-shell">
+      {hasOrganizationAccess && (
+        <Sidebar
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
+      )}
+
       <header className="topbar">
+        {hasOrganizationAccess && (
+          <button
+            type="button"
+            className="mobile-menu-button"
+            aria-label="Open navigation"
+            aria-expanded={sidebarOpen}
+            onClick={() => setSidebarOpen((previous) => !previous)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+        )}
+
         <NavLink to="/" className="brand">
           <span className="brand-mark-small">N</span>
           <span>NIRVANA</span>
@@ -323,7 +423,11 @@ function ProtectedApp({
 
           <div className="topbar-user">
             <span>{email}</span>
-            <button className="signout-button" onClick={onSignOut}>
+
+            <button
+              className="signout-button"
+              onClick={onSignOut}
+            >
               Sign out
             </button>
           </div>
@@ -340,7 +444,12 @@ function ProtectedApp({
                 This account is not currently assigned to an active organization.
                 Contact your administrator to request access.
               </p>
-              <button type="button" className="secondary-button" onClick={() => void onSignOut()}>
+
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => void onSignOut()}
+              >
                 Sign out
               </button>
             </div>
@@ -348,18 +457,36 @@ function ProtectedApp({
         ) : (
           <Routes>
             <Route path="/" element={<HomePage email={email} />} />
-            <Route path="/patients" element={<PatientsPage />} />
-          <Route path="/appointments" element={<AppointmentsPage />} />
-            <Route path="/clinical" element={<ClinicalWorkspacePage />} />
-            <Route path="/clinical/:patientId" element={<ClinicalWorkspacePage />} />
-        <Route
-          path="/clinical/:patientId/encounters"
-          element={<ClinicalEncountersPage />}
-        />
-      <Route
-        path="/clinical/:patientId/encounter/:encounterId"
-        element={<ClinicalEncounterPage />}
-      />
+
+            <Route
+              path="/patients"
+              element={<PatientsPage />}
+            />
+
+            <Route
+              path="/appointments"
+              element={<AppointmentsPage />}
+            />
+
+            <Route
+              path="/clinical"
+              element={<ClinicalWorkspacePage />}
+            />
+
+            <Route
+              path="/clinical/:patientId"
+              element={<ClinicalWorkspacePage />}
+            />
+
+            <Route
+              path="/clinical/:patientId/encounters"
+              element={<ClinicalEncountersPage />}
+            />
+
+            <Route
+              path="/clinical/:patientId/encounter/:encounterId"
+              element={<ClinicalEncounterPage />}
+            />
 
             <Route
               path="/research"
@@ -372,7 +499,10 @@ function ProtectedApp({
               }
             />
 
-            <Route path="/profile" element={<ProfilePage email={email} />} />
+            <Route
+              path="/profile"
+              element={<ProfilePage email={email} />}
+            />
 
             <Route
               path="/settings"
@@ -384,41 +514,24 @@ function ProtectedApp({
                 />
               }
             />
-            <Route path="/patients/:id/edit" element={<EditPatientPage />} />
-            <Route path="/patients/archived" element={<ArchivedPatientsPage />} />
-            <Route path="/patients/:id" element={<PatientDetailPage />} />
+
+            <Route
+              path="/patients/:id/edit"
+              element={<EditPatientPage />}
+            />
+
+            <Route
+              path="/patients/archived"
+              element={<ArchivedPatientsPage />}
+            />
+
+            <Route
+              path="/patients/:id"
+              element={<PatientDetailPage />}
+            />
           </Routes>
         )}
       </main>
-
-      {hasOrganizationAccess && (
-        <nav className="bottom-nav">
-          <NavLink to="/" end>
-            <span>⌂</span>
-            Home
-          </NavLink>
-
-          <NavLink to="/patients">
-            <span>👥</span>
-            Patients
-          </NavLink>
-
-          <NavLink to="/appointments">
-            <span>📅</span>
-            Appointments
-          </NavLink>
-
-          <NavLink to="/clinical">
-            <span>🩺</span>
-            Clinical
-          </NavLink>
-
-          <NavLink to="/profile">
-            <span>👤</span>
-            Profile
-          </NavLink>
-        </nav>
-      )}
     </div>
   )
 }

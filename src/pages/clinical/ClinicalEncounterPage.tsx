@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { NavLink, useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useOrganization } from '../../context/OrganizationContext'
+import PrescriptionSection from './PrescriptionSection'
+import PrescriptionHistory from './PrescriptionHistory'
 
 type ClinicalEncounter = {
   id: string
@@ -675,6 +677,17 @@ export default function ClinicalEncounterPage() {
           </section>
         </>
       )}
+
+      <PrescriptionSection
+        encounterId={encounter.id}
+        patientId={encounter.patient_id}
+        organizationId={activeOrganizationId}
+      />
+
+      <PrescriptionHistory
+        patientId={encounter.patient_id}
+        organizationId={activeOrganizationId!}
+      />
     </div>
   )
 }

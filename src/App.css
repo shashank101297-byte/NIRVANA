@@ -1502,3 +1502,710 @@ body {
     font-size: 11px;
   }
 }
+
+/* Prescription History */
+
+.prescription-history-panel {
+  margin-top: 28px;
+}
+
+.prescription-history-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.prescription-history-heading h2 {
+  margin: 2px 0 4px;
+}
+
+.prescription-history-subtitle {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.prescription-history-count {
+  min-width: 90px;
+  padding: 12px 16px;
+  border: 1px solid #dce8e3;
+  border-radius: 14px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.prescription-history-count span {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.prescription-history-timeline {
+  position: relative;
+}
+
+.prescription-history-entry {
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 14px;
+}
+
+.prescription-history-line {
+  position: relative;
+}
+
+.prescription-history-line::after {
+  content: "";
+  position: absolute;
+  top: 22px;
+  bottom: -14px;
+  left: 13px;
+  width: 2px;
+  background: #dce8e3;
+}
+
+.prescription-history-entry:last-child
+  .prescription-history-line::after {
+  display: none;
+}
+
+.prescription-history-dot {
+  position: absolute;
+  top: 17px;
+  left: 7px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #78968b;
+  z-index: 1;
+}
+
+.prescription-history-entry.current
+  .prescription-history-dot {
+  border-color: #0f4c3a;
+  background: #0f4c3a;
+}
+
+.prescription-history-card {
+  margin-bottom: 18px;
+  overflow: hidden;
+  border: 1px solid #dce8e3;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(15, 76, 58, 0.05);
+}
+
+.prescription-history-card-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.prescription-history-main {
+  min-width: 0;
+}
+
+.prescription-history-date-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+
+.prescription-history-date {
+  font-size: 13px;
+  font-weight: 600;
+  color: #5f6b66;
+}
+
+.prescription-history-card-header h3 {
+  margin: 0 0 5px;
+  font-size: 17px;
+}
+
+.prescription-history-medicine {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.prescription-history-summary {
+  margin: 5px 0 0;
+  color: #68746f;
+  font-size: 13px;
+}
+
+.prescription-history-chevron {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f1f6f4;
+  color: #0f4c3a;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.prescription-history-status,
+.prescription-history-current {
+  display: inline-flex;
+  align-items: center;
+  min-height: 23px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.prescription-history-status.active {
+  background: #e5f4ec;
+  color: #17633f;
+}
+
+.prescription-history-status.superseded {
+  background: #f0f1f2;
+  color: #626b68;
+}
+
+.prescription-history-status.cancelled {
+  background: #fbe9e9;
+  color: #a33b3b;
+}
+
+.prescription-history-current {
+  background: #e7f0ed;
+  color: #0f4c3a;
+}
+
+.prescription-history-details {
+  padding: 0 20px 20px;
+  border-top: 1px solid #edf2f0;
+}
+
+.prescription-history-change {
+  margin: 16px 0;
+  padding: 13px 15px;
+  border-left: 3px solid #78968b;
+  border-radius: 8px;
+  background: #f5f8f7;
+}
+
+.prescription-history-change > span {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #68746f;
+}
+
+.prescription-history-change strong {
+  display: block;
+  font-size: 14px;
+}
+
+.prescription-history-change p {
+  margin: 4px 0 0;
+  color: #5f6b66;
+  font-size: 13px;
+}
+
+.prescription-history-medicine-list {
+  display: grid;
+  gap: 10px;
+}
+
+.prescription-history-medicine-row {
+  padding: 14px;
+  border: 1px solid #e6eeeb;
+  border-radius: 12px;
+  background: #fbfcfc;
+}
+
+.prescription-history-medicine-row > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.prescription-history-medicine-row > div:first-child span {
+  color: #6b7671;
+  font-size: 12px;
+}
+
+.prescription-history-dose {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.prescription-history-dose span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  border-radius: 8px;
+  background: #f1f6f4;
+  font-size: 13px;
+}
+
+.prescription-history-dose b {
+  font-size: 10px;
+  color: #6b7671;
+  text-transform: uppercase;
+}
+
+.prescription-history-medicine-row small {
+  display: block;
+  margin-top: 10px;
+  color: #68746f;
+}
+
+.prescription-history-medicine-row p {
+  margin: 10px 0 0;
+  color: #56625d;
+  font-size: 13px;
+}
+
+.prescription-history-notes {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e6eeeb;
+}
+
+.prescription-history-notes p {
+  margin: 5px 0 0;
+  color: #5f6b66;
+}
+
+.prescription-history-empty {
+  padding: 40px 20px;
+  text-align: center;
+  border: 1px dashed #d4e1dc;
+  border-radius: 14px;
+}
+
+.prescription-history-empty-icon {
+  font-size: 30px;
+  margin-bottom: 8px;
+}
+
+.prescription-history-empty h3 {
+  margin: 0 0 5px;
+}
+
+.prescription-history-empty p {
+  margin: 0;
+  color: #6b7671;
+}
+
+@media (max-width: 700px) {
+  .prescription-history-heading {
+    align-items: flex-start;
+  }
+
+  .prescription-history-count {
+    min-width: 72px;
+    padding: 9px 10px;
+    font-size: 20px;
+  }
+
+  .prescription-history-entry {
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .prescription-history-dot {
+    left: 3px;
+  }
+
+  .prescription-history-line::after {
+    left: 9px;
+  }
+
+  .prescription-history-card-header {
+    padding: 15px;
+  }
+
+  .prescription-history-details {
+    padding: 0 15px 15px;
+  }
+
+  .prescription-history-dose {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* =========================================================
+   NIRVANA UI V2 — SIDEBAR NAVIGATION
+   Desktop sidebar + mobile drawer
+   ========================================================= */
+
+:root {
+  --nirvana-green: #163d32;
+  --nirvana-green-dark: #0f3027;
+  --nirvana-green-soft: #edf4f1;
+  --nirvana-background: #f4f7f5;
+  --nirvana-border: #dfe8e4;
+  --nirvana-muted: #718079;
+}
+
+/* Desktop sidebar */
+
+.nirvana-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 1000;
+
+  width: 250px;
+  padding: 22px 16px;
+
+  display: flex;
+  flex-direction: column;
+
+  box-sizing: border-box;
+
+  background: #ffffff;
+  border-right: 1px solid var(--nirvana-border);
+
+  box-shadow: 8px 0 30px rgba(22, 61, 50, 0.04);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px 28px;
+}
+
+.sidebar-brand-mark {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+
+  border-radius: 12px;
+  background: var(--nirvana-green);
+  color: #ffffff;
+
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.sidebar-brand div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-brand strong {
+  color: var(--nirvana-green);
+  font-size: 18px;
+  letter-spacing: 0.02em;
+}
+
+.sidebar-brand span {
+  color: var(--nirvana-muted);
+  font-size: 11px;
+}
+
+.sidebar-section-label {
+  padding: 0 12px 8px;
+
+  color: #91a09a;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sidebar-nav-item {
+  min-height: 46px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 0 12px;
+
+  box-sizing: border-box;
+
+  border-radius: 11px;
+
+  color: #53665f;
+  text-decoration: none;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.sidebar-nav-item:hover {
+  background: #f5f8f7;
+  color: var(--nirvana-green);
+}
+
+.sidebar-nav-item-active {
+  background: var(--nirvana-green-soft);
+  color: var(--nirvana-green);
+  font-weight: 700;
+}
+
+.sidebar-nav-item-active:hover {
+  background: var(--nirvana-green-soft);
+}
+
+.sidebar-nav-icon {
+  width: 24px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 18px;
+  line-height: 1;
+}
+
+.sidebar-divider {
+  height: 1px;
+  margin: 20px 8px;
+
+  background: var(--nirvana-border);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 18px 12px 4px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-footer span {
+  color: var(--nirvana-green);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.sidebar-footer small {
+  color: #91a09a;
+  font-size: 11px;
+}
+
+/* Main layout */
+
+.app-shell {
+  min-height: 100vh;
+  background: var(--nirvana-background);
+}
+
+.app-shell > .content {
+  margin-left: 250px;
+  width: auto;
+  max-width: none;
+  padding-left: 42px;
+  padding-right: 42px;
+}
+
+/* Topbar */
+
+.app-shell > .topbar {
+  margin-left: 250px;
+}
+
+/* Remove old floating bottom navigation */
+
+.app-shell .bottom-nav {
+  display: none;
+}
+
+/* Mobile menu button */
+
+.mobile-menu-button {
+  display: none;
+
+  width: 42px;
+  height: 42px;
+
+  margin-right: 8px;
+
+  padding: 9px;
+
+  border: 1px solid var(--nirvana-border);
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  cursor: pointer;
+}
+
+.mobile-menu-button span {
+  display: block;
+
+  width: 100%;
+  height: 2px;
+
+  margin: 5px 0;
+
+  border-radius: 2px;
+
+  background: var(--nirvana-green);
+}
+
+/* Overlay */
+
+.sidebar-overlay {
+  display: none;
+}
+
+/* Better desktop content density */
+
+@media (min-width: 1001px) {
+  .app-shell > .content > .page {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .welcome {
+    padding-top: 18px;
+  }
+
+  .module-grid {
+    max-width: 1050px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .module-card {
+    min-height: 150px;
+  }
+}
+
+/* Mobile drawer */
+
+@media (max-width: 1000px) {
+  .app-shell > .topbar {
+    margin-left: 0;
+  }
+
+  .app-shell > .content {
+    margin-left: 0;
+    width: min(100% - 24px, 760px);
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .nirvana-sidebar {
+    top: 0;
+    bottom: 0;
+
+    width: min(285px, 82vw);
+
+    transform: translateX(-105%);
+
+    transition: transform 0.22s ease;
+
+    box-shadow: 12px 0 40px rgba(0, 0, 0, 0.15);
+
+    z-index: 1100;
+  }
+
+  .nirvana-sidebar-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+
+    z-index: 1050;
+
+    display: block;
+
+    background: rgba(10, 30, 24, 0.38);
+
+    opacity: 0;
+    pointer-events: none;
+
+    transition: opacity 0.22s ease;
+  }
+
+  .sidebar-overlay-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mobile-menu-button {
+    display: block;
+  }
+
+  .topbar {
+    gap: 8px;
+  }
+
+  .brand {
+    flex-shrink: 0;
+  }
+}
+
+/* Small phones */
+
+@media (max-width: 600px) {
+  .app-shell > .content {
+    width: calc(100% - 20px);
+    padding-top: 24px;
+    padding-bottom: 40px;
+  }
+
+  .welcome {
+    margin-bottom: 24px;
+  }
+
+  .welcome h1 {
+    font-size: 34px;
+  }
+
+  .module-grid {
+    margin-top: 18px;
+  }
+
+  .module-card {
+    min-height: 130px;
+  }
+}
+

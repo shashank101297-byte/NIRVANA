@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useOrganization } from '../../context/OrganizationContext'
+import PrescriptionSection from './PrescriptionSection'
 
 type Patient = {
   id: string
@@ -44,6 +45,7 @@ export default function ClinicalWorkspacePage() {
   const [, setEncounters] = useState<ClinicalEncounter[]>([])
   const [, setEncounterLoading] = useState(false)
   const [showNewVisit, setShowNewVisit] = useState(false)
+  const [savedEncounterId, setSavedEncounterId] = useState<string | null>(null)
   const [savingVisit, setSavingVisit] = useState(false)
   const [error, setError] = useState('')
 
@@ -238,7 +240,7 @@ export default function ClinicalWorkspacePage() {
     setSavingVisit(true)
     setError('')
 
-    const { error: insertError } = await supabase
+    const { data: createdEncounter, error: insertError } = await supabase
       .from('clinical_encounters')
       .insert({
         organization_id: activeOrganizationId,
@@ -273,8 +275,10 @@ export default function ClinicalWorkspacePage() {
         treatment_plan: treatmentPlan.trim(),
         follow_up_advice: followUpAdvice.trim(),
       })
+      .select('id')
+      .single()
 
-    if (insertError) {
+    if (insertError || !createdEncounter) {
       setError(insertError.message)
       setSavingVisit(false)
       return
@@ -295,6 +299,7 @@ export default function ClinicalWorkspacePage() {
       }
     }
 
+    setSavedEncounterId(createdEncounter.id)
     setEncounterDate(new Date().toISOString().slice(0, 10))
     setEncounterType('OPD')
     setStatus('Open')
@@ -733,7 +738,14 @@ export default function ClinicalWorkspacePage() {
             </section>
           )}
 
-          
+          {savedEncounterId && (
+            <PrescriptionSection
+              encounterId={savedEncounterId}
+              patientId={selectedPatient.id}
+              organizationId={activeOrganizationId!}
+            />
+          )}
+
         </>
       )}
     </div>
