@@ -2322,3 +2322,354 @@ body {
   }
 }
 
+
+/* =========================================================
+   NIRVANA CLINICAL DESK — DASHBOARD
+   ========================================================= */
+
+.nirvana-dashboard {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 28px;
+}
+
+.nirvana-dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.nirvana-dashboard-header h1 {
+  margin: 4px 0 4px;
+  font-size: 34px;
+  line-height: 1.1;
+}
+
+.nirvana-dashboard-header > div:first-child > p:last-child {
+  margin: 0;
+  color: #5f716c;
+}
+
+.nirvana-dashboard-today {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #5f716c;
+}
+
+.nirvana-dashboard-today strong {
+  color: #173f35;
+}
+
+.nirvana-dashboard-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.nirvana-dashboard-metric {
+  min-height: 128px;
+  padding: 20px;
+  border: 1px solid #dce7e3;
+  border-radius: 16px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 6px 22px rgba(25, 60, 50, 0.05);
+}
+
+.nirvana-dashboard-metric-primary {
+  border-color: #b7d3ca;
+  background: #f4faf8;
+}
+
+.nirvana-dashboard-metric span {
+  font-size: 13px;
+  font-weight: 700;
+  color: #557068;
+}
+
+.nirvana-dashboard-metric strong {
+  font-size: 34px;
+  line-height: 1;
+  color: #173f35;
+}
+
+.nirvana-dashboard-metric small {
+  color: #73827e;
+  font-size: 12px;
+}
+
+.nirvana-dashboard-panel {
+  background: #fff;
+  border: 1px solid #dce7e3;
+  border-radius: 18px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  box-shadow: 0 6px 22px rgba(25, 60, 50, 0.04);
+}
+
+.nirvana-dashboard-panel-header {
+  padding: 20px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid #e8efed;
+}
+
+.nirvana-dashboard-panel-header h2,
+.nirvana-dashboard-actions h2 {
+  margin: 3px 0 4px;
+  color: #173f35;
+  font-size: 21px;
+}
+
+.nirvana-dashboard-panel-header span {
+  color: #71817c;
+  font-size: 13px;
+}
+
+.nirvana-dashboard-clinic-list,
+.nirvana-dashboard-upcoming-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.nirvana-dashboard-clinic-row,
+.nirvana-dashboard-upcoming-row {
+  display: grid;
+  align-items: center;
+  gap: 18px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s ease;
+}
+
+.nirvana-dashboard-clinic-row {
+  grid-template-columns: 92px minmax(0, 1fr) 130px 28px;
+  padding: 17px 22px;
+  border-bottom: 1px solid #edf2f0;
+}
+
+.nirvana-dashboard-upcoming-row {
+  grid-template-columns: 100px minmax(0, 1fr) 28px;
+  padding: 15px 22px;
+  border-bottom: 1px solid #edf2f0;
+}
+
+.nirvana-dashboard-clinic-row:last-child,
+.nirvana-dashboard-upcoming-row:last-child {
+  border-bottom: 0;
+}
+
+.nirvana-dashboard-clinic-row:hover,
+.nirvana-dashboard-upcoming-row:hover {
+  background: #f7faf9;
+}
+
+.nirvana-dashboard-clinic-row.is-terminal {
+  opacity: 0.58;
+}
+
+.nirvana-dashboard-clinic-time strong {
+  color: #173f35;
+  font-size: 16px;
+}
+
+.nirvana-dashboard-clinic-patient {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.nirvana-dashboard-clinic-patient strong {
+  color: #21332f;
+  font-size: 15px;
+}
+
+.nirvana-dashboard-clinic-patient span,
+.nirvana-dashboard-clinic-patient small {
+  color: #71817c;
+  font-size: 12px;
+}
+
+.nirvana-dashboard-status {
+  justify-self: start;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #eef3f1;
+  color: #46635b;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.nirvana-dashboard-status.status-in-progress {
+  background: #e6f4ef;
+  color: #17644e;
+}
+
+.nirvana-dashboard-status.status-completed {
+  background: #edf1ef;
+  color: #65736f;
+}
+
+.nirvana-dashboard-status.status-cancelled,
+.nirvana-dashboard-status.status-no-show {
+  background: #f3eeee;
+  color: #795f5f;
+}
+
+.nirvana-dashboard-arrow {
+  color: #78918a;
+  font-size: 20px;
+  text-align: right;
+}
+
+.nirvana-dashboard-upcoming-date {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nirvana-dashboard-upcoming-date strong {
+  color: #173f35;
+  font-size: 14px;
+}
+
+.nirvana-dashboard-upcoming-date span {
+  color: #71817c;
+  font-size: 12px;
+}
+
+.nirvana-dashboard-empty {
+  min-height: 150px;
+  padding: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+  color: #71817c;
+}
+
+.nirvana-dashboard-empty strong {
+  color: #334b44;
+}
+
+.nirvana-dashboard-actions {
+  padding: 4px 0 24px;
+}
+
+.nirvana-dashboard-action-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.nirvana-dashboard-action {
+  min-height: 96px;
+  padding: 17px;
+  border: 1px solid #dce7e3;
+  border-radius: 15px;
+  background: #fff;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  box-shadow: 0 5px 18px rgba(25, 60, 50, 0.035);
+}
+
+.nirvana-dashboard-action strong {
+  color: #173f35;
+}
+
+.nirvana-dashboard-action span {
+  color: #71817c;
+  font-size: 12px;
+}
+
+.nirvana-dashboard-action-primary {
+  background: #173f35;
+  border-color: #173f35;
+}
+
+.nirvana-dashboard-action-primary strong,
+.nirvana-dashboard-action-primary span {
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .nirvana-dashboard {
+    padding: 20px;
+  }
+
+  .nirvana-dashboard-metrics,
+  .nirvana-dashboard-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nirvana-dashboard-clinic-row {
+    grid-template-columns: 76px minmax(0, 1fr) 28px;
+  }
+
+  .nirvana-dashboard-status {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .nirvana-dashboard {
+    padding: 14px;
+  }
+
+  .nirvana-dashboard-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .nirvana-dashboard-today {
+    text-align: left;
+  }
+
+  .nirvana-dashboard-header h1 {
+    font-size: 28px;
+  }
+
+  .nirvana-dashboard-metrics,
+  .nirvana-dashboard-action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nirvana-dashboard-clinic-row {
+    grid-template-columns: 66px minmax(0, 1fr) 24px;
+    gap: 10px;
+    padding: 15px;
+  }
+
+  .nirvana-dashboard-upcoming-row {
+    grid-template-columns: 78px minmax(0, 1fr) 24px;
+    gap: 10px;
+    padding: 15px;
+  }
+
+  .nirvana-dashboard-panel-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .nirvana-dashboard-panel-header .secondary-button {
+    width: 100%;
+    text-align: center;
+  }
+}

@@ -96,28 +96,28 @@ function LoginPage() {
   )
 }
 
-function DashboardPage({ email }: { email: string }) {
+function DashboardPage() {
   const {
     activeOrganization,
     activeOrganizationId,
     loading: organizationLoading,
   } = useOrganization()
 
-  const [appointments, setAppointments] = useState<
-    {
-      id: string
-      scheduled_start: string
-      appointment_type: string
-      status: string
-      reason: string
-      patient_id: string
-      patients:
-        | { full_name: string; patient_code: string }
-        | { full_name: string; patient_code: string }[]
-        | null
-    }[]
-  >([])
+  type DashboardAppointment = {
+    id: string
+    scheduled_start: string
+    appointment_type: string
+    status: string
+    reason: string
+    patient_id: string
+    patients:
+      | { full_name: string; patient_code: string }
+      | { full_name: string; patient_code: string }[]
+      | null
+  }
 
+  const [appointments, setAppointments] = useState<DashboardAppointment[]>([])
+  const [upcomingAppointments, setUpcomingAppointments] = useState<DashboardAppointment[]>([])
   const [activePatients, setActivePatients] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -138,32 +138,44 @@ function DashboardPage({ email }: { email: string }) {
         now.getFullYear(),
         now.getMonth(),
         now.getDate(),
-        0,
-        0,
-        0,
-        0,
+        0, 0, 0, 0,
       )
 
       const startOfTomorrow = new Date(
         now.getFullYear(),
         now.getMonth(),
         now.getDate() + 1,
-        0,
-        0,
-        0,
-        0,
+        0, 0, 0, 0,
       )
 
-      const [appointmentsResult, patientsResult] = await Promise.all([
+      const startOfNextWeek = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() + 8,
+        0, 0, 0, 0,
+      )
+
+      const appointmentSelect =
+        'id, scheduled_start, appointment_type, status, reason, patient_id, patients(full_name, patient_code)'
+
+      const [todayResult, upcomingResult, patientsResult] = await Promise.all([
         supabase
           .from('appointments')
-          .select(
-            'id, scheduled_start, appointment_type, status, reason, patient_id, patients(full_name, patient_code)',
-          )
+          .select(appointmentSelect)
           .eq('organization_id', activeOrganizationId)
           .gte('scheduled_start', startOfDay.toISOString())
           .lt('scheduled_start', startOfTomorrow.toISOString())
           .order('scheduled_start', { ascending: true }),
+
+        supabase
+          .from('appointments')
+          .select(appointmentSelect)
+          .eq('organization_id', activeOrganizationId)
+          .gte('scheduled_start', startOfTomorrow.toISOString())
+          .lt('scheduled_start', startOfNextWeek.toISOString())
+          .not('status', 'in', '("Cancelled","No-show")')
+          .order('scheduled_start', { ascending: true })
+          .limit(6),
 
         supabase
           .from('patients')
@@ -172,18 +184,17 @@ function DashboardPage({ email }: { email: string }) {
           .eq('status', 'active'),
       ])
 
-      if (appointmentsResult.error) {
-        setError(appointmentsResult.error.message)
+      const firstError =
+        todayResult.error ?? upcomingResult.error ?? patientsResult.error
+
+      if (firstError) {
+        setError(firstError.message)
       }
 
-      if (patientsResult.error && !appointmentsResult.error) {
-        setError(patientsResult.error.message)
-      }
-
-      setAppointments(
-        (appointmentsResult.data ?? []) as typeof appointments,
+      setAppointments((todayResult.data ?? []) as DashboardAppointment[])
+      setUpcomingAppointments(
+        (upcomingResult.data ?? []) as DashboardAppointment[],
       )
-
       setActivePatients(patientsResult.count ?? 0)
       setLoading(false)
     }
@@ -207,8 +218,16 @@ function DashboardPage({ email }: { email: string }) {
     })
   }
 
-  function formatDate() {
+  function formatUpcomingDate(value: string) {
+    return new Date(value).toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+    })
+  }
+
+  function formatTodayDate() {
     return new Date().toLocaleDateString('en-IN', {
+      weekday: 'long',
       day: '2-digit',
       month: 'long',
       year: 'numeric',
@@ -228,6 +247,11 @@ function DashboardPage({ email }: { email: string }) {
       !['Completed', 'Cancelled', 'No-show'].includes(appointment.status),
   ).length
 
+  const actionableAppointments = appointments.filter(
+    (appointment) =>
+      !['Completed', 'Cancelled', 'No-show'].includes(appointment.status),
+  )
+
   if (organizationLoading) {
     return (
       <div className="page">
@@ -238,18 +262,16 @@ function DashboardPage({ email }: { email: string }) {
 
   return (
     <div className="page nirvana-dashboard">
-      <section className="nirvana-dashboard-hero">
+      <section className="nirvana-dashboard-header">
         <div>
-          <p className="eyebrow">NIRVANA</p>
-          <h1>Clinical Command Center</h1>
-          <p>
-            {activeOrganization?.name ?? 'Current organization'}
-          </p>
+          <p className="eyebrow">CLINICAL DESK</p>
+          <h1>Good day.</h1>
+          <p>{activeOrganization?.name ?? 'Current organization'}</p>
         </div>
 
-        <div className="nirvana-dashboard-date">
-          <span>Today</span>
-          <strong>{formatDate()}</strong>
+        <div className="nirvana-dashboard-today">
+          <span>{formatTodayDate()}</span>
+          <strong>Today's clinical workload</strong>
         </div>
       </section>
 
@@ -259,81 +281,93 @@ function DashboardPage({ email }: { email: string }) {
         </div>
       )}
 
-      <section className="nirvana-dashboard-summary">
-        <div>
+      <section className="nirvana-dashboard-metrics">
+        <div className="nirvana-dashboard-metric nirvana-dashboard-metric-primary">
           <span>Today's appointments</span>
           <strong>{loading ? '—' : appointments.length}</strong>
+          <small>All appointments scheduled today</small>
         </div>
 
-        <div>
-          <span>In progress</span>
-          <strong>{loading ? '—' : inProgress}</strong>
-        </div>
-
-        <div>
-          <span>Completed</span>
-          <strong>{loading ? '—' : completed}</strong>
-        </div>
-
-        <div>
+        <div className="nirvana-dashboard-metric">
           <span>Remaining</span>
           <strong>{loading ? '—' : remaining}</strong>
+          <small>Not completed, cancelled or no-show</small>
+        </div>
+
+        <div className="nirvana-dashboard-metric">
+          <span>In progress</span>
+          <strong>{loading ? '—' : inProgress}</strong>
+          <small>Consultations currently open</small>
+        </div>
+
+        <div className="nirvana-dashboard-metric">
+          <span>Completed</span>
+          <strong>{loading ? '—' : completed}</strong>
+          <small>Visits completed today</small>
         </div>
       </section>
 
-      <section className="nirvana-dashboard-section">
-        <div className="nirvana-dashboard-section-header">
+      <section className="nirvana-dashboard-panel">
+        <div className="nirvana-dashboard-panel-header">
           <div>
-            <p className="eyebrow">CLINICAL WORKFLOW</p>
+            <p className="eyebrow">TODAY</p>
             <h2>Today's Clinic</h2>
+            <span>
+              {loading
+                ? 'Loading schedule…'
+                : `${actionableAppointments.length} appointment${
+                    actionableAppointments.length === 1 ? '' : 's'
+                  } requiring attention`}
+            </span>
           </div>
 
-          <NavLink
-            to="/appointments"
-            className="secondary-button"
-          >
+          <NavLink to="/appointments" className="secondary-button">
             Full Schedule
           </NavLink>
         </div>
 
         {loading ? (
           <div className="nirvana-dashboard-empty">
-            Loading today's schedule...
+            Loading today's clinic...
           </div>
         ) : appointments.length === 0 ? (
           <div className="nirvana-dashboard-empty">
             <strong>No appointments today</strong>
-            <span>
-              Your schedule is clear. You can create a new appointment
-              from the button below.
-            </span>
+            <span>Your clinic schedule is clear.</span>
           </div>
         ) : (
-          <div className="nirvana-dashboard-schedule">
+          <div className="nirvana-dashboard-clinic-list">
             {appointments.map((appointment) => {
               const patient = getPatient(appointment.patients)
+              const terminalStatus = ['Completed', 'Cancelled', 'No-show'].includes(
+                appointment.status,
+              )
+
+              const appointmentDestination = terminalStatus
+                ? `/clinical/${appointment.patient_id}`
+                : `/clinical/${appointment.patient_id}?appointmentId=${appointment.id}`
 
               return (
                 <NavLink
                   key={appointment.id}
-                  to={`/clinical/${appointment.patient_id}`}
-                  className="nirvana-dashboard-appointment"
+                  to={appointmentDestination}
+                  className={`nirvana-dashboard-clinic-row ${
+                    terminalStatus ? 'is-terminal' : ''
+                  }`}
                 >
-                  <div className="nirvana-dashboard-time">
-                    {formatTime(appointment.scheduled_start)}
+                  <div className="nirvana-dashboard-clinic-time">
+                    <strong>{formatTime(appointment.scheduled_start)}</strong>
                   </div>
 
-                  <div className="nirvana-dashboard-patient">
+                  <div className="nirvana-dashboard-clinic-patient">
                     <strong>
                       {patient?.full_name ?? 'Patient unavailable'}
                     </strong>
-
                     <span>
                       {patient?.patient_code ?? '—'}
                       {' · '}
                       {appointment.appointment_type}
                     </span>
-
                     {appointment.reason && (
                       <small>{appointment.reason}</small>
                     )}
@@ -360,34 +394,87 @@ function DashboardPage({ email }: { email: string }) {
         )}
       </section>
 
+      <section className="nirvana-dashboard-panel">
+        <div className="nirvana-dashboard-panel-header">
+          <div>
+            <p className="eyebrow">NEXT 7 DAYS</p>
+            <h2>Upcoming</h2>
+            <span>Future appointments after today's clinic</span>
+          </div>
+
+          <NavLink to="/appointments" className="secondary-button">
+            View Schedule
+          </NavLink>
+        </div>
+
+        {loading ? (
+          <div className="nirvana-dashboard-empty">
+            Loading upcoming appointments...
+          </div>
+        ) : upcomingAppointments.length === 0 ? (
+          <div className="nirvana-dashboard-empty">
+            <strong>No upcoming appointments</strong>
+            <span>
+              There are no active appointments scheduled in the next 7 days.
+            </span>
+          </div>
+        ) : (
+          <div className="nirvana-dashboard-upcoming-list">
+            {upcomingAppointments.map((appointment) => {
+              const patient = getPatient(appointment.patients)
+
+              return (
+                <NavLink
+                  key={appointment.id}
+                  to="/appointments"
+                  className="nirvana-dashboard-upcoming-row"
+                >
+                  <div className="nirvana-dashboard-upcoming-date">
+                    <strong>{formatUpcomingDate(appointment.scheduled_start)}</strong>
+                    <span>{formatTime(appointment.scheduled_start)}</span>
+                  </div>
+
+                  <div className="nirvana-dashboard-clinic-patient">
+                    <strong>
+                      {patient?.full_name ?? 'Patient unavailable'}
+                    </strong>
+                    <span>
+                      {patient?.patient_code ?? '—'}
+                      {' · '}
+                      {appointment.appointment_type}
+                    </span>
+                  </div>
+
+                  <span className="nirvana-dashboard-arrow" aria-hidden="true">
+                    →
+                  </span>
+                </NavLink>
+              )
+            })}
+          </div>
+        )}
+      </section>
+
       <section className="nirvana-dashboard-actions">
         <div>
           <p className="eyebrow">QUICK ACTIONS</p>
-          <h2>Start clinical work</h2>
+          <h2>Clinical tools</h2>
         </div>
 
         <div className="nirvana-dashboard-action-grid">
           <NavLink to="/patients" className="nirvana-dashboard-action">
             <strong>Patients</strong>
-            <span>
-              {activePatients} active patients
-            </span>
+            <span>{activePatients} active patients</span>
           </NavLink>
 
-          <NavLink
-            to="/appointments"
-            className="nirvana-dashboard-action"
-          >
-            <strong>Appointments</strong>
-            <span>Manage today's schedule</span>
+          <NavLink to="/appointments" className="nirvana-dashboard-action">
+            <strong>New Appointment</strong>
+            <span>Schedule a patient visit</span>
           </NavLink>
 
-          <NavLink
-            to="/clinical"
-            className="nirvana-dashboard-action"
-          >
-            <strong>Clinical</strong>
-            <span>Open clinical workspace</span>
+          <NavLink to="/clinical" className="nirvana-dashboard-action">
+            <strong>Clinical Workspace</strong>
+            <span>Open clinical workflow</span>
           </NavLink>
 
           <NavLink
@@ -399,11 +486,6 @@ function DashboardPage({ email }: { email: string }) {
           </NavLink>
         </div>
       </section>
-
-      <div className="account-card">
-        <span>Authenticated account</span>
-        <strong>{email}</strong>
-      </div>
     </div>
   )
 }
@@ -717,7 +799,7 @@ function ProtectedApp({
           </div>
         ) : (
           <Routes>
-            <Route path="/" element={<DashboardPage email={email} />} />
+            <Route path="/" element={<DashboardPage />} />
 
             <Route
               path="/patients"
