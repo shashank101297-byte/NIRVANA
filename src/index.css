@@ -870,3 +870,295 @@ code {
   border-style: dashed;
 }
 
+
+/* NIRVANA Clinical Command Center */
+
+.nirvana-dashboard {
+  max-width: 1180px;
+}
+
+.nirvana-dashboard-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.nirvana-dashboard-hero h1 {
+  margin: 4px 0 8px;
+}
+
+.nirvana-dashboard-date {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.nirvana-dashboard-date span {
+  color: #71807b;
+  font-size: 13px;
+}
+
+.nirvana-dashboard-date strong {
+  font-size: 17px;
+}
+
+.nirvana-dashboard-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.nirvana-dashboard-summary > div {
+  padding: 20px;
+  border: 1px solid rgba(25, 67, 56, 0.10);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.nirvana-dashboard-summary span {
+  display: block;
+  color: #71807b;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.nirvana-dashboard-summary strong {
+  display: block;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.nirvana-dashboard-section,
+.nirvana-dashboard-actions {
+  margin-bottom: 28px;
+}
+
+.nirvana-dashboard-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.nirvana-dashboard-section-header h2,
+.nirvana-dashboard-actions h2 {
+  margin: 3px 0 0;
+}
+
+.nirvana-dashboard-schedule {
+  border: 1px solid rgba(25, 67, 56, 0.10);
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.nirvana-dashboard-appointment {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr) auto 28px;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(25, 67, 56, 0.08);
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s ease;
+}
+
+.nirvana-dashboard-appointment:last-child {
+  border-bottom: 0;
+}
+
+.nirvana-dashboard-appointment:hover {
+  background: rgba(25, 67, 56, 0.035);
+}
+
+.nirvana-dashboard-time {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.nirvana-dashboard-patient {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.nirvana-dashboard-patient strong {
+  font-size: 16px;
+}
+
+.nirvana-dashboard-patient span,
+.nirvana-dashboard-patient small {
+  color: #71807b;
+}
+
+.nirvana-dashboard-status {
+  padding: 7px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.nirvana-dashboard-status.status-scheduled {
+  background: #f1f4f2;
+}
+
+.nirvana-dashboard-status.status-confirmed {
+  background: #e8f3ee;
+}
+
+.nirvana-dashboard-status.status-in-progress {
+  background: #fff1d8;
+}
+
+.nirvana-dashboard-status.status-completed {
+  background: #e4f2ea;
+}
+
+.nirvana-dashboard-status.status-cancelled,
+.nirvana-dashboard-status.status-no-show {
+  background: #f5e8e8;
+}
+
+.nirvana-dashboard-arrow {
+  font-size: 20px;
+}
+
+.nirvana-dashboard-empty {
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  padding: 30px;
+  border: 1px dashed rgba(25, 67, 56, 0.18);
+  border-radius: 18px;
+  color: #71807b;
+  text-align: center;
+}
+
+.nirvana-dashboard-empty strong {
+  color: #23483e;
+}
+
+.nirvana-dashboard-action-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.nirvana-dashboard-action {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 100px;
+  padding: 18px;
+  border: 1px solid rgba(25, 67, 56, 0.10);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  color: inherit;
+  text-decoration: none;
+}
+
+.nirvana-dashboard-action strong {
+  font-size: 16px;
+}
+
+.nirvana-dashboard-action span {
+  color: #71807b;
+  font-size: 13px;
+}
+
+.nirvana-dashboard-action-primary {
+  background: #104d40;
+  color: white;
+  border-color: #104d40;
+}
+
+.nirvana-dashboard-action-primary span {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+@media (max-width: 760px) {
+  .nirvana-dashboard-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .nirvana-dashboard-date {
+    align-items: flex-start;
+  }
+
+  .nirvana-dashboard-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .nirvana-dashboard-appointment {
+    grid-template-columns: 68px minmax(0, 1fr) 24px;
+    gap: 10px;
+    padding: 15px;
+  }
+
+  .nirvana-dashboard-status {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .nirvana-dashboard-arrow {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+
+  .nirvana-dashboard-action-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .nirvana-dashboard-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .nirvana-dashboard-summary > div {
+    padding: 15px;
+  }
+
+  .nirvana-dashboard-summary strong {
+    font-size: 25px;
+  }
+
+  .nirvana-dashboard-appointment {
+    grid-template-columns: 1fr 24px;
+  }
+
+  .nirvana-dashboard-time {
+    grid-column: 1;
+  }
+
+  .nirvana-dashboard-patient {
+    grid-column: 1;
+  }
+
+  .nirvana-dashboard-status {
+    grid-column: 1;
+  }
+
+  .nirvana-dashboard-arrow {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+  }
+
+  .nirvana-dashboard-action-grid {
+    grid-template-columns: 1fr;
+  }
+}
