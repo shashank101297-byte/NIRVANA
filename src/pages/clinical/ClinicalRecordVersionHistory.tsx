@@ -68,68 +68,228 @@ function formatDate(value: string) {
   })
 }
 
-function value(value: unknown) {
-  if (
-    value === null ||
-    value === undefined ||
-    value === ''
-  ) {
-    return 'Not recorded'
-  }
-
-  if (Array.isArray(value)) {
-    return value.length
-      ? value.join(', ')
-      : 'None'
-  }
-
-  if (typeof value === 'object') {
-    return JSON.stringify(value, null, 2)
-  }
-
-  return String(value)
-}
-
 function Snapshot({
   snapshot,
 }: {
   snapshot: Record<string, unknown>
 }) {
+  const technicalFields = new Set([
+    'diagnosis_coding_metadata',
+    'differential_diagnosis_coding_metadata',
+  ])
+
+  const structuredLabels: Record<string, string> = {
+    prakriti: 'Prakriti',
+    vikriti: 'Vikriti',
+    dosha: 'Dosha',
+    dushya: 'Dushya',
+    srotas: 'Srotas',
+    agni: 'Agni',
+    koshtha: 'Koshtha',
+  }
+
+  const formatValue = (item: unknown) => {
+    if (
+      item === null ||
+      item === undefined ||
+      item === ''
+    ) {
+      return ''
+    }
+
+    if (Array.isArray(item)) {
+      return item
+        .map((entry) => String(entry))
+        .join(', ')
+    }
+
+    if (typeof item === 'object') {
+      return JSON.stringify(item, null, 2)
+    }
+
+    return String(item)
+  }
+
+  const visibleEntries = Object.entries(snapshot)
+    .filter(([key, item]) => {
+      const internalOrDuplicateFields = new Set([
+        'appointment_id',
+        'encounter_date',
+        'encounter_type',
+        'prakriti',
+        'vikriti',
+        'dosha',
+        'dushya',
+        'srotas',
+        'agni',
+        'koshtha',
+        'ama',
+        'nidana',
+        'samprapti',
+        'ayurvedic_diagnosis',
+        'structured_investigations',
+        'ayurvedic_structured_assessment',
+        'diagnosis_coding_metadata',
+        'status',
+        'differential_diagnosis_coding_metadata',
+      ])
+
+      if (internalOrDuplicateFields.has(key)) {
+        return false
+      }
+      if (hidden.has(key)) return false
+      if (technicalFields.has(key)) return false
+      if (
+        key === 'ayurvedic_structured_assessment'
+      ) {
+        return false
+      }
+      if (
+        item === null ||
+        item === undefined ||
+        item === ''
+      ) {
+        return false
+      }
+      if (
+        Array.isArray(item) &&
+        item.length === 0
+      ) {
+        return false
+      }
+
+      return true
+    })
+
+  const structured =
+    snapshot.ayurvedic_structured_assessment
+
+  const structuredObject =
+    typeof structured === 'object' &&
+    structured !== null &&
+    !Array.isArray(structured)
+      ? (structured as Record<string, unknown>)
+      : {}
+
+  const structuredEntries =
+    Object.entries(structuredObject).filter(
+      ([key, item]) => {
+        if (!structuredLabels[key]) {
+          return false
+        }
+
+        if (
+          item === null ||
+          item === undefined ||
+          item === ''
+        ) {
+          return false
+        }
+
+        if (
+          Array.isArray(item) &&
+          item.length === 0
+        ) {
+          return false
+        }
+
+        return true
+      },
+    )
+
+  const renderEntry = (
+    key: string,
+    item: unknown,
+    label: string,
+  ) => (
+    <div
+      key={key}
+      style={{
+        padding: '10px 12px',
+        border: '1px solid rgba(0,0,0,0.07)',
+        borderRadius: '10px',
+        background: 'rgba(0,0,0,0.015)',
+      }}
+    >
+      <div
+        style={{
+          fontSize: '12px',
+          fontWeight: 600,
+          marginBottom: '4px',
+          opacity: 0.72,
+        }}
+      >
+        {label}
+      </div>
+
+      <div
+        style={{
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+        }}
+      >
+        {formatValue(item)}
+      </div>
+    </div>
+  )
+
   return (
     <div>
-      {Object.entries(snapshot)
-        .filter(([key]) => !hidden.has(key))
-        .map(([key, item]) => (
-          <div
-            key={key}
+      {visibleEntries.length > 0 && (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns:
+              'repeat(2, minmax(0, 1fr))',
+            gap: '8px',
+          }}
+        >
+          {visibleEntries.map(
+            ([key, item]) =>
+              renderEntry(
+                key,
+                item,
+                labels[key] ??
+                  key.replaceAll('_', ' '),
+              ),
+          )}
+        </div>
+      )}
+
+      {structuredEntries.length > 0 && (
+        <div
+          style={{
+            marginTop: '18px',
+          }}
+        >
+          <p
+            className="eyebrow"
             style={{
-              padding: '12px 0',
-              borderBottom:
-                '1px solid rgba(0,0,0,0.07)',
+              marginBottom: '8px',
             }}
           >
-            <div
-              style={{
-                fontSize: '13px',
-                fontWeight: 600,
-                marginBottom: '5px',
-              }}
-            >
-              {labels[key] ?? key.replaceAll('_', ' ')}
-            </div>
+            STRUCTURED AYURVEDIC ASSESSMENT
+          </p>
 
-            <pre
-              style={{
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-                margin: 0,
-                font: 'inherit',
-              }}
-            >
-              {value(item)}
-            </pre>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns:
+                'repeat(2, minmax(0, 1fr))',
+              gap: '8px',
+            }}
+          >
+            {structuredEntries.map(
+              ([key, item]) =>
+                renderEntry(
+                  key,
+                  item,
+                  structuredLabels[key],
+                ),
+            )}
           </div>
-        ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -290,7 +450,7 @@ export default function ClinicalRecordVersionHistory({
                     {isOpen && (
                       <div className="history-entry-content">
                         <p className="eyebrow">
-                          PREVIOUS RECORD STATE
+                          RECORDED STATE
                         </p>
 
                         <Snapshot

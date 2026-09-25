@@ -1316,3 +1316,35 @@ code {
   }
 }
 
+
+/* Clinical history text visibility fix */
+.history-action-bar,
+.history-action-title,
+.history-action-count,
+.history-action-arrow {
+  color: #1f2937 !important;
+}
+
+.history-modal,
+.history-modal h2,
+.history-modal p,
+.history-modal .eyebrow {
+  color: #1f2937;
+}
+
+.history-entry-button,
+.history-entry-button strong,
+.history-entry-button small,
+.history-entry-button span {
+  color: #1f2937 !important;
+}
+
+.history-entry-content {
+  color: #1f2937;
+}
+
+.history-entry-content strong,
+.history-entry-content div {
+  color: #1f2937;
+}
+
