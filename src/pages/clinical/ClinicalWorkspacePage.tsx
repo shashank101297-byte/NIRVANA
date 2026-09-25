@@ -48,11 +48,12 @@ export default function ClinicalWorkspacePage() {
   const [showNewVisit, setShowNewVisit] = useState(false)
   const [savedEncounterId, setSavedEncounterId] = useState<string | null>(null)
   const [savingVisit, setSavingVisit] = useState(false)
+  const [preparingVisit, setPreparingVisit] = useState(false)
   const [error, setError] = useState('')
 
-  const [encounterType, setEncounterType] = useState('OPD')
-  const [status, setStatus] = useState('Open')
-  const [chiefComplaint, setChiefComplaint] = useState('')
+  const [encounterType] = useState('OPD')
+  const [status] = useState('Open')
+  const [chiefComplaint] = useState('')
   const [historyOfPresentIllness, setHistoryOfPresentIllness] = useState('')
   const [pastHistory, setPastHistory] = useState('')
   const [personalHistory, setPersonalHistory] = useState('')
@@ -267,24 +268,24 @@ export default function ClinicalWorkspacePage() {
     }
   }, [activeOrganization, selectedPatient])
 
-  async function handleCreateVisit(event: React.FormEvent) {
-    event.preventDefault()
-
-    if (!selectedPatient || !activeOrganizationId) {
-      setError('No valid patient or active organization is available for a new visit.')
+  async function prepareNewVisit() {
+    if (!selectedPatient || !activeOrganizationId || savedEncounterId) {
       return
     }
+
+    setPreparingVisit(true)
+    setError('')
 
     const { data: userData, error: userError } = await supabase.auth.getUser()
 
     if (userError || !userData.user) {
       setError(userError?.message ?? 'Unable to determine the authenticated user.')
+      setPreparingVisit(false)
       return
     }
 
-    setSavingVisit(true)
-    setError('')
-
+    // Appointment-linked visits must reuse an existing encounter if one
+    // already exists. The database constraint also protects against races.
     if (appointmentId) {
       const {
         data: existingEncounter,
@@ -301,17 +302,13 @@ export default function ClinicalWorkspacePage() {
 
       if (existingEncounterError) {
         setError(existingEncounterError.message)
-        setSavingVisit(false)
+        setPreparingVisit(false)
         return
       }
 
       if (existingEncounter) {
         setSavedEncounterId(existingEncounter.id)
-        setShowNewVisit(false)
-        setSavingVisit(false)
-        navigate(
-          `/clinical/${selectedPatient.id}/encounter/${existingEncounter.id}`,
-        )
+        setPreparingVisit(false)
         return
       }
     }
@@ -321,10 +318,80 @@ export default function ClinicalWorkspacePage() {
       .insert({
         organization_id: activeOrganizationId,
         patient_id: selectedPatient.id,
-            appointment_id: appointmentId || null,
+        appointment_id: appointmentId || null,
         created_by: userData.user.id,
-        // Automatically record the exact date and time when the encounter is saved.
         encounter_date: new Date().toISOString(),
+        encounter_type: encounterType,
+        status: 'Open',
+      })
+      .select('id')
+      .single()
+
+    if (insertError) {
+      if (appointmentId && insertError.code === '23505') {
+        const {
+          data: existingEncounterAfterConflict,
+          error: existingEncounterAfterConflictError,
+        } = await supabase
+          .from('clinical_encounters')
+          .select('id')
+          .eq('appointment_id', appointmentId)
+          .eq('patient_id', selectedPatient.id)
+          .eq('organization_id', activeOrganizationId)
+          .maybeSingle()
+
+        if (!existingEncounterAfterConflictError && existingEncounterAfterConflict) {
+          setSavedEncounterId(existingEncounterAfterConflict.id)
+          setPreparingVisit(false)
+          return
+        }
+      }
+
+      setError(insertError.message)
+      setPreparingVisit(false)
+      return
+    }
+
+    if (!createdEncounter) {
+      setError('The clinical encounter could not be opened.')
+      setPreparingVisit(false)
+      return
+    }
+
+    setSavedEncounterId(createdEncounter.id)
+    setPreparingVisit(false)
+  }
+
+  useEffect(() => {
+    if (
+      showNewVisit &&
+      selectedPatient &&
+      activeOrganizationId &&
+      !savedEncounterId
+    ) {
+      void prepareNewVisit()
+    }
+  }, [
+    showNewVisit,
+    selectedPatient,
+    activeOrganizationId,
+    savedEncounterId,
+  ])
+
+  async function handleCreateVisit(event: React.FormEvent) {
+    event.preventDefault()
+
+    if (!selectedPatient || !activeOrganizationId || !savedEncounterId) {
+      setError('The clinical visit is still being prepared. Please wait a moment.')
+      return
+    }
+
+    setSavingVisit(true)
+    setError('')
+
+    const { data: updatedEncounter, error: updateError } = await supabase
+      .from('clinical_encounters')
+      .update({
         encounter_type: encounterType,
         status,
         chief_complaint: chiefComplaint.trim(),
@@ -372,50 +439,20 @@ export default function ClinicalWorkspacePage() {
         treatment_plan: treatmentPlan.trim(),
         follow_up_advice: followUpAdvice.trim(),
       })
+      .eq('id', savedEncounterId)
+      .eq('patient_id', selectedPatient.id)
+      .eq('organization_id', activeOrganizationId)
       .select('id')
-      .single()
+      .maybeSingle()
 
-    if (insertError) {
-      // The database unique constraint protects appointment-linked
-      // encounters from concurrent duplicate submissions. If another
-      // session created the encounter between our pre-check and insert,
-      // recover gracefully by opening that existing encounter.
-      if (appointmentId && insertError.code === '23505') {
-        const {
-          data: existingEncounterAfterConflict,
-          error: existingEncounterAfterConflictError,
-        } = await supabase
-          .from('clinical_encounters')
-          .select('id')
-          .eq('appointment_id', appointmentId)
-          .eq('patient_id', selectedPatient.id)
-          .eq('organization_id', activeOrganizationId)
-          .maybeSingle()
-
-        if (existingEncounterAfterConflictError) {
-          setError(existingEncounterAfterConflictError.message)
-          setSavingVisit(false)
-          return
-        }
-
-        if (existingEncounterAfterConflict) {
-          setSavedEncounterId(existingEncounterAfterConflict.id)
-          setShowNewVisit(false)
-          setSavingVisit(false)
-          navigate(
-            `/clinical/${selectedPatient.id}/encounter/${existingEncounterAfterConflict.id}`,
-          )
-          return
-        }
-      }
-
-      setError(insertError.message)
+    if (updateError) {
+      setError(updateError.message)
       setSavingVisit(false)
       return
     }
 
-    if (!createdEncounter) {
-      setError('The clinical encounter could not be saved.')
+    if (!updatedEncounter) {
+      setError('The clinical encounter could not be updated.')
       setSavingVisit(false)
       return
     }
@@ -438,20 +475,25 @@ export default function ClinicalWorkspacePage() {
         setError(
           `Visit saved, but the appointment status could not be updated: ${appointmentUpdateError.message}`,
         )
-      } else if (!completedAppointment) {
+        setSavingVisit(false)
+        return
+      }
+
+      if (!completedAppointment) {
         setError(
           'Visit saved, but the appointment was not in In Progress status. Please verify the appointment status.',
         )
+        setSavingVisit(false)
+        return
       }
     }
 
-    setSavedEncounterId(createdEncounter.id)
-    setEncounterType('OPD')
-    setStatus('Open')
-    setChiefComplaint('')
-    setShowNewVisit(false)
     setSavingVisit(false)
-    void loadEncounters(selectedPatient.id)
+    setShowNewVisit(false)
+
+    navigate(
+      `/clinical/${selectedPatient.id}/encounter/${savedEncounterId}`,
+    )
   }
 
   if (organizationLoading) {
@@ -979,21 +1021,29 @@ export default function ClinicalWorkspacePage() {
               </div>
             </details>
 
+            {savedEncounterId && (
+              <PrescriptionSection
+                encounterId={savedEncounterId}
+                patientId={selectedPatient.id}
+                organizationId={activeOrganizationId!}
+              />
+            )}
+
             <div className="form-actions clinical-save-bar">
-                  <button type="submit" className="primary-button" disabled={savingVisit}>
-                    {savingVisit ? 'Saving...' : 'Save Visit'}
-                  </button>
-                </div>
+              <button
+                type="submit"
+                className="primary-button"
+                disabled={savingVisit || preparingVisit || !savedEncounterId}
+              >
+                {savingVisit
+                  ? 'Saving...'
+                  : preparingVisit
+                    ? 'Preparing Visit...'
+                    : 'Save Visit'}
+              </button>
+            </div>
               </form>
             </section>
-          )}
-
-          {savedEncounterId && (
-            <PrescriptionSection
-              encounterId={savedEncounterId}
-              patientId={selectedPatient.id}
-              organizationId={activeOrganizationId!}
-            />
           )}
 
         </>

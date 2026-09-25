@@ -892,6 +892,12 @@ export default function ClinicalEncounterPage() {
               {managementFields.map(renderField)}
             </div>
 
+            <PrescriptionSection
+              encounterId={encounter.id}
+              patientId={encounter.patient_id}
+              organizationId={activeOrganizationId}
+            />
+
             <div className="form-actions">
               <button
                 type="button"
@@ -996,12 +1002,6 @@ export default function ClinicalEncounterPage() {
           </section>
         </>
       )}
-
-      <PrescriptionSection
-        encounterId={encounter.id}
-        patientId={encounter.patient_id}
-        organizationId={activeOrganizationId}
-      />
 
       <PrescriptionHistory
         patientId={encounter.patient_id}
