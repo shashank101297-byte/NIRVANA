@@ -47,9 +47,10 @@ export default function PrescriptionHistory({
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([])
   const [items, setItems] = useState<Item[]>([])
   const [encounters, setEncounters] = useState<Encounter[]>([])
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [open, setOpen] = useState(false)
 
   async function loadHistory() {
     setLoading(true)
@@ -82,7 +83,9 @@ export default function PrescriptionHistory({
       return
     }
 
-    const prescriptionIds = prescriptionRows.map((item) => item.id)
+    const prescriptionIds = prescriptionRows.map(
+      (item) => item.id,
+    )
 
     const encounterIds = [
       ...new Set(
@@ -90,20 +93,21 @@ export default function PrescriptionHistory({
       ),
     ]
 
-    const [itemsResult, encountersResult] = await Promise.all([
-      supabase
-        .from('prescription_items')
-        .select(
-          'prescription_id, line_no, therapy_system, medicine_name, formulation, dose, route, frequency, timing, duration_value, duration_unit, quantity, anupana, instructions',
-        )
-        .in('prescription_id', prescriptionIds)
-        .order('line_no', { ascending: true }),
+    const [itemsResult, encountersResult] =
+      await Promise.all([
+        supabase
+          .from('prescription_items')
+          .select(
+            'prescription_id, line_no, therapy_system, medicine_name, formulation, dose, route, frequency, timing, duration_value, duration_unit, quantity, anupana, instructions',
+          )
+          .in('prescription_id', prescriptionIds)
+          .order('line_no', { ascending: true }),
 
-      supabase
-        .from('clinical_encounters')
-        .select('id, encounter_date')
-        .in('id', encounterIds),
-    ])
+        supabase
+          .from('clinical_encounters')
+          .select('id, encounter_date')
+          .in('id', encounterIds),
+      ])
 
     if (itemsResult.error) {
       setError(itemsResult.error.message)
@@ -118,7 +122,9 @@ export default function PrescriptionHistory({
     }
 
     setItems((itemsResult.data ?? []) as Item[])
-    setEncounters((encountersResult.data ?? []) as Encounter[])
+    setEncounters(
+      (encountersResult.data ?? []) as Encounter[],
+    )
     setLoading(false)
   }
 
@@ -187,6 +193,14 @@ export default function PrescriptionHistory({
     } more`
   }
 
+  const selectedPrescription = prescriptions.find(
+    (item) => item.id === selectedId,
+  )
+
+  const selectedItems = selectedPrescription
+    ? getPrescriptionItems(selectedPrescription.id)
+    : []
+
   if (loading) {
     return (
       <section className="clinical-panel prescription-history-panel">
@@ -203,73 +217,199 @@ export default function PrescriptionHistory({
   }
 
   return (
-    <section className="clinical-panel prescription-history-panel">
-      <div className="prescription-history-heading">
-        <div>
-          <p className="eyebrow">PRESCRIPTION HISTORY</p>
-          <h2>Prescription History</h2>
-          <p className="prescription-history-subtitle">
-            Complete treatment history for this patient
-          </p>
-        </div>
-
-        <div className="prescription-history-count">
-          {prescriptions.length}
-          <span>
-            {prescriptions.length === 1
-              ? 'Prescription'
-              : 'Prescriptions'}
-          </span>
-        </div>
-      </div>
-
-      {error && (
-        <div className="nirvana-error" role="alert">
-          {error}
-        </div>
-      )}
-
-      {!prescriptions.length ? (
-        <div className="prescription-history-empty">
-          <div className="prescription-history-empty-icon">
-            💊
+    <>
+      <section className="clinical-panel prescription-history-panel">
+        <div className="prescription-history-heading">
+          <div>
+            <p className="eyebrow">PRESCRIPTION HISTORY</p>
+            <h2>Prescription History</h2>
+            <p className="prescription-history-subtitle">
+              Complete treatment history for this patient
+            </p>
           </div>
-          <h3>No prescription history</h3>
-          <p>
-            Prescriptions recorded for this patient will appear
-            here.
-          </p>
+
+          <div className="prescription-history-count">
+            {prescriptions.length}
+            <span>
+              {prescriptions.length === 1
+                ? 'Prescription'
+                : 'Prescriptions'}
+            </span>
+          </div>
         </div>
-      ) : (
-        <div className="prescription-history-timeline">
-          {prescriptions.map((prescription, index) => {
-            const prescriptionItems =
-              getPrescriptionItems(prescription.id)
 
-            const isExpanded =
-              expandedId === prescription.id
+        {error && (
+          <div className="nirvana-error" role="alert">
+            {error}
+          </div>
+        )}
 
-            const isCurrent =
-              index === 0 && prescription.status === 'Active'
+        {!prescriptions.length ? (
+          <div className="prescription-history-empty">
+            <div className="prescription-history-empty-icon">
+              💊
+            </div>
+            <h3>No prescription history</h3>
+            <p>
+              Prescriptions recorded for this patient will
+              appear here.
+            </p>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="history-action-bar"
+            style={{
+              width: '100%',
+              border: 'none',
+              cursor: 'pointer',
+              textAlign: 'left',
+            }}
+            onClick={() => setOpen(true)}
+          >
+            <div className="prescription-history-main">
+              <div className="prescription-history-date-row">
+                <span className="prescription-history-date">
+                  {getEncounterDate(
+                    prescriptions[0].encounter_id,
+                  )}
+                </span>
 
-            return (
-              <article
-                className={`prescription-history-entry ${
-                  isCurrent ? 'current' : ''
-                }`}
-                key={prescription.id}
+                <span
+                  className={getStatusClass(
+                    prescriptions[0].status,
+                  )}
+                >
+                  {prescriptions[0].status}
+                </span>
+
+                {prescriptions[0].status === 'Active' && (
+                  <span className="prescription-history-current">
+                    Current
+                  </span>
+                )}
+              </div>
+
+              <h3>
+                {prescriptions.length === 1
+                  ? 'View Prescription History'
+                  : `View ${prescriptions.length} Prescriptions`}
+              </h3>
+
+              <p className="prescription-history-medicine">
+                {getPrimaryMedicine(prescriptions[0].id)}
+              </p>
+
+              <p className="prescription-history-summary">
+                Tap to view complete treatment history
+              </p>
+            </div>
+
+            <span className="history-action-count">{prescriptions.length}</span>
+            <span className="history-action-arrow">›</span>
+          </button>
+        )}
+      </section>
+
+      {open && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Prescription History"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000,
+            background: 'rgba(0,0,0,0.42)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+          onClick={() => setOpen(false)}
+        >
+          <div
+            style={{
+              width: 'min(760px, 100%)',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              background: 'var(--surface, #ffffff)',
+              borderRadius: '20px',
+              padding: '20px',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+            }}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                gap: '12px',
+                marginBottom: '18px',
+              }}
+            >
+              <div>
+                <p className="eyebrow">
+                  PRESCRIPTION HISTORY
+                </p>
+
+                <h2 style={{ marginBottom: '4px' }}>
+                  Prescription History
+                </h2>
+
+                <p>
+                  {prescriptions.length}{' '}
+                  {prescriptions.length === 1
+                    ? 'prescription'
+                    : 'prescriptions'}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => setOpen(false)}
+                aria-label="Close prescription history"
               >
-                <div className="prescription-history-line">
-                  <div className="prescription-history-dot" />
-                </div>
+                ✕
+              </button>
+            </div>
 
-                <div className="prescription-history-card">
+            {prescriptions.map((prescription, index) => {
+              const prescriptionItems =
+                getPrescriptionItems(prescription.id)
+
+              const isSelected =
+                selectedId === prescription.id
+
+              const isCurrent =
+                index === 0 &&
+                prescription.status === 'Active'
+
+              return (
+                <div
+                  key={prescription.id}
+                  className="prescription-history-card"
+                  style={{
+                    marginBottom: '10px',
+                    border: '1px solid rgba(0,0,0,0.08)',
+                    borderRadius: '14px',
+                    overflow: 'hidden',
+                  }}
+                >
                   <button
                     type="button"
-                    className="prescription-history-card-header"
+                    className="history-action-bar"
+                    style={{
+                      width: '100%',
+                      border: 'none',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                    }}
                     onClick={() =>
-                      setExpandedId(
-                        isExpanded ? null : prescription.id,
+                      setSelectedId(
+                        isSelected ? null : prescription.id,
                       )
                     }
                   >
@@ -301,7 +441,9 @@ export default function PrescriptionHistory({
                       </h3>
 
                       <p className="prescription-history-medicine">
-                        {getPrimaryMedicine(prescription.id)}
+                        {getPrimaryMedicine(
+                          prescription.id,
+                        )}
                       </p>
 
                       {prescriptionItems[0] && (
@@ -312,7 +454,8 @@ export default function PrescriptionHistory({
                             prescriptionItems[0].route,
                             prescriptionItems[0]
                               .duration_value !== null &&
-                            prescriptionItems[0].duration_unit
+                            prescriptionItems[0]
+                              .duration_unit
                               ? `${prescriptionItems[0].duration_value} ${prescriptionItems[0].duration_unit}`
                               : '',
                           ]
@@ -323,11 +466,11 @@ export default function PrescriptionHistory({
                     </div>
 
                     <span className="prescription-history-chevron">
-                      {isExpanded ? '⌃' : '⌄'}
+                      {isSelected ? '⌃' : '⌄'}
                     </span>
                   </button>
 
-                  {isExpanded && (
+                  {isSelected && (
                     <div className="prescription-history-details">
                       {prescription.supersedes_prescription_id && (
                         <div className="prescription-history-change">
@@ -346,7 +489,7 @@ export default function PrescriptionHistory({
                       )}
 
                       <div className="prescription-history-medicine-list">
-                        {prescriptionItems.map((item) => (
+                        {selectedItems.map((item) => (
                           <div
                             className="prescription-history-medicine-row"
                             key={`${prescription.id}-${item.line_no}`}
@@ -419,9 +562,7 @@ export default function PrescriptionHistory({
                             )}
 
                             {item.instructions && (
-                              <p>
-                                {item.instructions}
-                              </p>
+                              <p>{item.instructions}</p>
                             )}
                           </div>
                         ))}
@@ -436,11 +577,11 @@ export default function PrescriptionHistory({
                     </div>
                   )}
                 </div>
-              </article>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
       )}
-    </section>
+    </>
   )
 }

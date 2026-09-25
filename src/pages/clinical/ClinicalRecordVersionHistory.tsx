@@ -14,17 +14,42 @@ type Props = {
   organizationId: string
 }
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleString('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+const labels: Record<string, string> = {
+  chief_complaint: 'Chief complaint',
+  history_of_present_illness: 'History of present illness',
+  past_history: 'Past history',
+  personal_history: 'Personal history',
+  family_history: 'Family history',
+  drug_allergy_history: 'Drug / allergy history',
+  examination: 'Examination',
+  assessment: 'Assessment',
+  diagnosis: 'Diagnosis',
+  differential_diagnosis: 'Differential diagnosis',
+  investigations: 'Investigations',
+  treatment_plan: 'Treatment plan',
+  follow_up_advice: 'Follow-up advice',
+  prakriti: 'Prakriti',
+  vikriti: 'Vikriti',
+  dosha: 'Dosha',
+  dushya: 'Dushya',
+  srotas: 'Srotas',
+  agni: 'Agni',
+  koshtha: 'Koshtha',
+  ama: 'Ama',
+  nidana: 'Nidana',
+  samprapti: 'Samprapti',
+  ayurvedic_diagnosis: 'Ayurvedic diagnosis',
+  ayurvedic_structured_assessment:
+    'Ayurvedic structured assessment',
+  modern_structured_diagnoses:
+    'Modern structured diagnoses',
+  modern_structured_differential_diagnoses:
+    'Modern structured differential diagnoses',
+  structured_investigations:
+    'Structured investigations',
 }
 
-const hiddenFields = new Set([
+const hidden = new Set([
   'id',
   'organization_id',
   'patient_id',
@@ -33,9 +58,29 @@ const hiddenFields = new Set([
   'updated_at',
 ])
 
-function displayValue(value: unknown) {
-  if (value === null || value === undefined || value === '') {
+function formatDate(value: string) {
+  return new Date(value).toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function value(value: unknown) {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ''
+  ) {
     return 'Not recorded'
+  }
+
+  if (Array.isArray(value)) {
+    return value.length
+      ? value.join(', ')
+      : 'None'
   }
 
   if (typeof value === 'object') {
@@ -45,164 +90,223 @@ function displayValue(value: unknown) {
   return String(value)
 }
 
+function Snapshot({
+  snapshot,
+}: {
+  snapshot: Record<string, unknown>
+}) {
+  return (
+    <div>
+      {Object.entries(snapshot)
+        .filter(([key]) => !hidden.has(key))
+        .map(([key, item]) => (
+          <div
+            key={key}
+            style={{
+              padding: '12px 0',
+              borderBottom:
+                '1px solid rgba(0,0,0,0.07)',
+            }}
+          >
+            <div
+              style={{
+                fontSize: '13px',
+                fontWeight: 600,
+                marginBottom: '5px',
+              }}
+            >
+              {labels[key] ?? key.replaceAll('_', ' ')}
+            </div>
+
+            <pre
+              style={{
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                margin: 0,
+                font: 'inherit',
+              }}
+            >
+              {value(item)}
+            </pre>
+          </div>
+        ))}
+    </div>
+  )
+}
+
 export default function ClinicalRecordVersionHistory({
   encounterId,
   organizationId,
 }: Props) {
   const [versions, setVersions] = useState<Version[]>([])
+  const [open, setOpen] = useState(false)
+  const [selected, setSelected] =
+    useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {
-    async function loadVersions() {
-      setLoading(true)
-      setError('')
-
-      const { data, error: versionError } = await supabase
+    async function load() {
+      const { data } = await supabase
         .from('clinical_record_versions')
         .select(
           'id, operation, actor_user_id, snapshot, created_at',
         )
-        .eq('entity_type', 'clinical_encounter')
+        .eq(
+          'entity_type',
+          'clinical_encounter',
+        )
         .eq('record_id', encounterId)
-        .eq('organization_id', organizationId)
-        .order('created_at', { ascending: false })
+        .eq(
+          'organization_id',
+          organizationId,
+        )
+        .order('created_at', {
+          ascending: false,
+        })
 
-      if (versionError) {
-        setError(versionError.message)
-        setVersions([])
-      } else {
-        setVersions((data ?? []) as Version[])
-      }
-
+      setVersions((data ?? []) as Version[])
       setLoading(false)
     }
 
-    void loadVersions()
+    void load()
   }, [encounterId, organizationId])
 
   if (loading) {
-    return (
-      <section className="clinical-panel">
-        <p className="eyebrow">RECORD HISTORY</p>
-        <h2>Version History</h2>
-        <p>Loading clinical record history...</p>
-      </section>
-    )
+    return null
   }
 
   return (
-    <section className="clinical-panel">
-      <div className="clinical-section-header">
-        <div>
-          <p className="eyebrow">RECORD HISTORY</p>
-          <h2>Version History</h2>
-          <p>
-            Read-only history of this clinical encounter.
-          </p>
-        </div>
+    <>
+      <button
+        type="button"
+        className="history-action-bar"
+        onClick={() => setOpen(true)}
+      >
+        <span className="history-action-title">
+          🕘 Record History
+        </span>
 
-        <strong>{versions.length} versions</strong>
-      </div>
+        <span className="history-action-count">
+          {versions.length}
+        </span>
 
-      {error && (
-        <div className="nirvana-error" role="alert">
-          {error}
-        </div>
-      )}
+        <span className="history-action-arrow">
+          ›
+        </span>
+      </button>
 
-      {!error && !versions.length && (
-        <div className="account-card">
-          <h3>No version history yet</h3>
-          <p>
-            No historical snapshots are available for this
-            encounter.
-          </p>
-        </div>
-      )}
+      {open && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Record History"
+          className="history-modal-backdrop"
+          onClick={() => setOpen(false)}
+        >
+          <div
+            className="history-modal"
+            onClick={(event) =>
+              event.stopPropagation()
+            }
+          >
+            <div className="history-modal-header">
+              <div>
+                <p className="eyebrow">
+                  RECORD HISTORY
+                </p>
 
-      {!error &&
-        versions.map((version) => {
-          const isExpanded = expandedId === version.id
+                <h2>Clinical Record History</h2>
 
-          return (
-            <article
-              className="account-card"
-              key={version.id}
-              style={{
-                textAlign: 'left',
-                marginBottom: '8px',
-              }}
-            >
+                <p>
+                  {versions.length}{' '}
+                  {versions.length === 1
+                    ? 'version'
+                    : 'versions'}
+                </p>
+              </div>
+
               <button
                 type="button"
                 className="secondary-button"
-                style={{
-                  width: '100%',
-                  justifyContent: 'space-between',
-                  textAlign: 'left',
-                }}
                 onClick={() =>
-                  setExpandedId(
-                    isExpanded ? null : version.id,
-                  )
+                  setOpen(false)
                 }
+                aria-label="Close"
               >
-                <span>
-                  <strong>
-                    {version.operation === 'BASELINE'
-                      ? 'Baseline'
-                      : version.operation}
-                  </strong>
-                  {' · '}
-                  {formatDate(version.created_at)}
-                  {' · '}
-                  {version.actor_user_id
-                    ? `User ${version.actor_user_id.slice(0, 8)}`
-                    : 'System'}
-                </span>
-
-                <span aria-hidden="true">
-                  {isExpanded ? '⌃' : '⌄'}
-                </span>
+                ✕
               </button>
+            </div>
 
-              {isExpanded && (
-                <div
-                  className="encounter-documentation-grid"
-                  style={{ marginTop: '12px' }}
-                >
-                  {Object.entries(version.snapshot)
-                    .filter(
-                      ([key]) => !hiddenFields.has(key),
-                    )
-                    .map(([key, value]) => (
-                      <div
-                        className="account-card"
-                        key={key}
-                      >
-                        <span>
-                          {key.replaceAll('_', ' ')}
-                        </span>
+            {versions.map(
+              (version) => {
+                const isOpen =
+                  selected === version.id
 
-                        <pre
-                          style={{
-                            whiteSpace: 'pre-wrap',
-                            wordBreak: 'break-word',
-                            margin: '6px 0 0',
-                            font: 'inherit',
-                          }}
-                        >
-                          {displayValue(value)}
-                        </pre>
+                const title =
+                  version.operation ===
+                    'BASELINE' ||
+                  version.operation ===
+                    'INSERT'
+                    ? 'Record created'
+                    : version.operation ===
+                      'DELETE'
+                      ? 'Record deleted'
+                      : 'Record updated'
+
+                return (
+                  <div
+                    key={version.id}
+                    className="history-entry"
+                  >
+                    <button
+                      type="button"
+                      className="history-entry-button"
+                      onClick={() =>
+                        setSelected(
+                          isOpen
+                            ? null
+                            : version.id,
+                        )
+                      }
+                    >
+                      <span>
+                        <strong>
+                          {title}
+                        </strong>
+
+                        <small>
+                          {formatDate(
+                            version.created_at,
+                          )}{' '}
+                          · Clinician
+                        </small>
+                      </span>
+
+                      <span>
+                        {isOpen ? '⌃' : '⌄'}
+                      </span>
+                    </button>
+
+                    {isOpen && (
+                      <div className="history-entry-content">
+                        <p className="eyebrow">
+                          PREVIOUS RECORD STATE
+                        </p>
+
+                        <Snapshot
+                          snapshot={
+                            version.snapshot
+                          }
+                        />
                       </div>
-                    ))}
-                </div>
-              )}
-            </article>
-          )
-        })}
-    </section>
+                    )}
+                  </div>
+                )
+              },
+            )}
+          </div>
+        </div>
+      )}
+    </>
   )
 }

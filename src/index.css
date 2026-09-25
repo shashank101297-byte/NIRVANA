@@ -1162,3 +1162,157 @@ code {
     grid-template-columns: 1fr;
   }
 }
+
+/* Compact clinical history controls */
+.prescription-history-panel {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+.prescription-history-panel .prescription-history-heading {
+  display: none !important;
+}
+
+.prescription-history-panel .prescription-history-card-header {
+  min-height: 54px !important;
+  padding: 14px 16px !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+}
+
+.prescription-history-panel .prescription-history-main {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex: 1 !important;
+}
+
+.prescription-history-panel .prescription-history-date-row,
+.prescription-history-panel .prescription-history-medicine,
+.prescription-history-panel .prescription-history-summary {
+  display: none !important;
+}
+
+.prescription-history-panel .prescription-history-main h3 {
+  margin: 0 !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+}
+
+.prescription-history-panel .prescription-history-main h3::before {
+  content: '💊 ';
+}
+
+.prescription-history-panel .prescription-history-chevron {
+  font-size: 18px !important;
+}
+
+
+.history-action-bar {
+  width: 100%;
+  min-height: 54px;
+  padding: 14px 16px;
+  margin-top: 8px;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 12px;
+  background: var(--surface, #fff);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.history-action-title {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.history-action-count {
+  min-width: 24px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.history-action-arrow {
+  font-size: 22px;
+}
+
+.history-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0,0,0,0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.history-modal {
+  width: min(760px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.22);
+}
+
+.history-modal-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.history-entry {
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.history-entry-button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  cursor: pointer;
+}
+
+.history-entry-button span:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.history-entry-button small {
+  opacity: 0.7;
+}
+
+.history-entry-content {
+  padding: 0 16px 16px;
+}
+
+@media (max-width: 700px) {
+  .history-modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .history-modal {
+    width: 100%;
+    max-height: 88vh;
+    border-radius: 18px 18px 0 0;
+  }
+}
+
