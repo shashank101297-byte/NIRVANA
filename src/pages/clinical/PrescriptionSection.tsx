@@ -5,6 +5,7 @@ type Item = {
   therapy_system: 'Ayurvedic' | 'Modern'
   medicine_name: string
   formulation: string
+  strength: string
   dose: string
   route: string
   frequency: string
@@ -20,6 +21,7 @@ const emptyItem: Item = {
   therapy_system: 'Ayurvedic',
   medicine_name: '',
   formulation: '',
+  strength: '',
   dose: '',
   route: 'Oral',
   frequency: '',
@@ -162,52 +164,20 @@ export default function PrescriptionSection({
     setError('')
     setMessage('')
 
-    const { data: userData, error: userError } =
-      await supabase.auth.getUser()
-
-    if (userError || !userData.user) {
-      setError(
-        userError?.message ??
-          'Authenticated user could not be determined.',
-      )
-      setSaving(false)
-      return
-    }
-
-    const { data: newPrescription, error: prescriptionError } =
-      await supabase
-        .from('prescriptions')
-        .insert({
-          organization_id: organizationId,
-          patient_id: patientId,
-          encounter_id: encounterId,
-          created_by: userData.user.id,
-          status: 'Active',
-          notes: notes.trim(),
-          supersedes_prescription_id: prescriptionId,
-          change_reason: changeReason.trim(),
-        })
-        .select('id')
-        .single()
-
-    if (prescriptionError || !newPrescription) {
-      setError(
-        prescriptionError?.message ??
-          'Unable to create the new prescription.',
-      )
-      setSaving(false)
-      return
-    }
-
-    const { error: itemError } = await supabase
-      .from('prescription_items')
-      .insert(
-        validItems.map((item, index) => ({
-          prescription_id: newPrescription.id,
-          line_no: index + 1,
+    const { error: transactionError } = await supabase.rpc(
+      'create_prescription_transaction',
+      {
+        p_organization_id: organizationId,
+        p_patient_id: patientId,
+        p_encounter_id: encounterId,
+        p_notes: notes.trim(),
+        p_change_reason: changeReason.trim(),
+        p_supersedes_prescription_id: prescriptionId,
+        p_items: validItems.map((item) => ({
           therapy_system: item.therapy_system,
           medicine_name: item.medicine_name.trim(),
           formulation: item.formulation.trim(),
+          strength: item.strength.trim(),
           dose: item.dose.trim(),
           route: item.route.trim(),
           frequency: item.frequency.trim(),
@@ -221,39 +191,15 @@ export default function PrescriptionSection({
           anupana: item.anupana.trim(),
           instructions: item.instructions.trim(),
         })),
-      )
+      },
+    )
 
-    if (itemError) {
-      await supabase
-        .from('prescriptions')
-        .delete()
-        .eq('id', newPrescription.id)
-
+    if (transactionError) {
       setError(
-        `Prescription could not be saved: ${itemError.message}`,
+        `Prescription could not be saved: ${transactionError.message}`,
       )
       setSaving(false)
       return
-    }
-
-    if (prescriptionId) {
-      const { error: supersedeError } = await supabase
-        .from('prescriptions')
-        .update({
-          status: 'Superseded',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', prescriptionId)
-        .eq('organization_id', organizationId)
-
-      if (supersedeError) {
-        setError(
-          `New prescription was created, but the previous prescription could not be marked as superseded: ${supersedeError.message}`,
-        )
-        setSaving(false)
-        await loadPrescription()
-        return
-      }
     }
 
     setEditing(false)
@@ -496,6 +442,19 @@ export default function PrescriptionSection({
 
 
                 <div className="form-field">
+      {item.therapy_system === 'Modern' && (
+        <div className="form-field">
+          <label>Strength</label>
+          <input
+            value={item.strength}
+            onChange={(event) =>
+              updateItem(index, 'strength', event.target.value)
+            }
+            placeholder="e.g. 500 mg, 10 mg/5 mL"
+          />
+        </div>
+      )}
+
                   <label>Dose</label>
                   <input
                     value={item.dose}
