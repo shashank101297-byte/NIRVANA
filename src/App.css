@@ -3081,3 +3081,741 @@ body {
     font-size: 12px;
   }
 }
+
+/* =========================================================
+   NIRVANA — PATIENT LONGITUDINAL CLINICAL RECORD
+   ========================================================= */
+
+.nirvana-patient-encounter {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 24px;
+  align-items: start;
+  gap: 14px;
+}
+
+.nirvana-patient-encounter-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nirvana-patient-encounter-top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.nirvana-patient-encounter-status {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #eef3f1;
+  color: #60736d;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.nirvana-patient-encounter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nirvana-patient-encounter-field > span,
+.nirvana-patient-encounter-followup > span {
+  color: #788883;
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.nirvana-patient-encounter-field > strong,
+.nirvana-patient-encounter-followup > strong {
+  color: var(--text-h);
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.nirvana-patient-encounter-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.nirvana-patient-encounter-meta > span {
+  padding: 4px 7px;
+  border-radius: 7px;
+  background: #f2f6f4;
+  color: #667872;
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.nirvana-patient-encounter-meta .nirvana-patient-encounter-change {
+  background: #f4efe6;
+  color: #786646;
+  font-weight: 700;
+}
+
+.nirvana-patient-encounter-followup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 2px;
+}
+
+.nirvana-patient-encounter-arrow {
+  align-self: center;
+  color: #78918a;
+  font-size: 19px;
+}
+
+@media (max-width: 600px) {
+  .nirvana-patient-encounter {
+    grid-template-columns: 30px minmax(0, 1fr) 18px;
+    gap: 9px;
+  }
+
+  .nirvana-patient-encounter-main {
+    gap: 7px;
+  }
+
+  .nirvana-patient-encounter-top {
+    gap: 6px;
+  }
+
+  .nirvana-patient-encounter-status {
+    font-size: 10px;
+    padding: 4px 6px;
+  }
+
+  .nirvana-patient-encounter-field > strong,
+  .nirvana-patient-encounter-followup > strong {
+    font-size: 12px;
+  }
+}
+
+/* =========================================================
+   LONGITUDINAL RECORD — COMPACT CLINICAL DENSITY
+   ========================================================= */
+
+.clinical-section-header .development-note {
+  padding: 0;
+  background: transparent;
+  color: #73827e;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.nirvana-patient-encounter {
+  padding: 16px 18px;
+  min-height: 0;
+}
+
+.nirvana-patient-encounter-main {
+  gap: 6px;
+}
+
+.nirvana-patient-encounter-top {
+  gap: 8px;
+}
+
+.nirvana-patient-encounter-top .encounter-history-date {
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.nirvana-patient-encounter-status {
+  font-size: 10px;
+  padding: 3px 7px;
+}
+
+.nirvana-patient-encounter-diagnosis {
+  color: var(--text-h);
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.nirvana-patient-encounter-meta {
+  gap: 5px;
+}
+
+.nirvana-patient-encounter-meta > span {
+  padding: 3px 6px;
+  background: transparent;
+  color: #788883;
+  border: 1px solid #e4ebe8;
+  border-radius: 6px;
+  font-size: 10px;
+}
+
+.nirvana-patient-encounter-meta
+  .nirvana-patient-encounter-change {
+  background: #f4efe6;
+  border-color: #e9deca;
+  color: #786646;
+}
+
+.nirvana-patient-encounter-arrow {
+  font-size: 16px;
+}
+
+@media (max-width: 600px) {
+  .clinical-section-header .development-note {
+    font-size: 11px;
+  }
+
+  .nirvana-patient-encounter {
+    padding: 13px 12px;
+    grid-template-columns: 28px minmax(0, 1fr) 16px;
+    gap: 8px;
+  }
+
+  .nirvana-patient-encounter-top .encounter-history-date {
+    font-size: 14px;
+  }
+
+  .nirvana-patient-encounter-diagnosis {
+    font-size: 13px;
+  }
+}
+
+/* =========================================================
+   PATIENT DETAIL — COMPACT CLINICAL RECORD LAYOUT
+   ========================================================= */
+
+.patient-info-collapsible {
+  margin: 0 0 18px;
+  border: 1px solid #dce7e3;
+  border-radius: 16px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.patient-info-collapsible summary {
+  min-height: 58px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--text-h);
+  font-weight: 700;
+}
+
+.patient-info-collapsible summary::-webkit-details-marker {
+  display: none;
+}
+
+.patient-info-collapsible summary::after {
+  content: '⌄';
+  color: #718079;
+  font-size: 18px;
+  transition: transform 0.18s ease;
+}
+
+.patient-info-collapsible[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.patient-info-toggle {
+  margin-left: auto;
+  color: #718079;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.patient-info-collapsible .patient-detail-grid {
+  margin: 0;
+  padding: 0 18px 18px;
+  border-top: 1px solid #e8efed;
+}
+
+.nirvana-history-header-compact {
+  padding: 14px 18px !important;
+  min-height: 62px;
+}
+
+.nirvana-history-header-compact h2 {
+  margin: 0 !important;
+  font-size: 21px !important;
+}
+
+.nirvana-history-count {
+  display: inline-block;
+  margin-top: 3px;
+  color: #718079;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+@media (max-width: 600px) {
+  .patient-info-collapsible {
+    margin-bottom: 12px;
+  }
+
+  .patient-info-collapsible summary {
+    min-height: 52px;
+    padding: 0 14px;
+  }
+
+  .patient-info-collapsible .patient-detail-grid {
+    padding: 0 14px 14px;
+  }
+
+  .nirvana-history-header-compact {
+    padding: 12px 14px !important;
+    min-height: 56px;
+  }
+
+  .nirvana-history-header-compact h2 {
+    font-size: 18px !important;
+  }
+}
+
+
+/* =========================================================
+   LONGITUDINAL RECORD — DENSE CLINICAL TIMELINE
+   ========================================================= */
+
+.encounter-history-list {
+  gap: 8px !important;
+}
+
+.nirvana-patient-encounter {
+  min-height: 0 !important;
+  padding: 16px 22px !important;
+  margin: 0 !important;
+  display: grid !important;
+  grid-template-columns: 38px minmax(0, 1fr) 28px !important;
+  align-items: start !important;
+  column-gap: 16px !important;
+}
+
+.nirvana-patient-encounter-main {
+  min-width: 0;
+}
+
+.nirvana-patient-encounter-top {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  margin: 0 !important;
+}
+
+.nirvana-patient-encounter-top .encounter-history-date {
+  margin: 0 !important;
+  line-height: 1.25 !important;
+}
+
+.nirvana-patient-encounter-status {
+  margin: 0 !important;
+  line-height: 1.2 !important;
+}
+
+.nirvana-patient-encounter-field {
+  margin: 8px 0 0 !important;
+}
+
+.nirvana-patient-encounter-field > span,
+.nirvana-patient-encounter-field > strong {
+  line-height: 1.3 !important;
+}
+
+.nirvana-patient-encounter-meta {
+  margin-top: 7px !important;
+  gap: 6px !important;
+}
+
+.nirvana-patient-encounter-arrow {
+  align-self: center !important;
+  justify-self: end !important;
+  margin: 0 !important;
+}
+
+@media (max-width: 600px) {
+  .nirvana-patient-encounter {
+    padding: 13px 14px !important;
+    grid-template-columns: 30px minmax(0, 1fr) 22px !important;
+    column-gap: 10px !important;
+  }
+
+  .nirvana-patient-encounter-field {
+    margin-top: 6px !important;
+  }
+
+  .nirvana-patient-encounter-meta {
+    margin-top: 5px !important;
+  }
+}
+
+
+/* =========================================================
+   LONGITUDINAL RECORD — FINAL DENSITY OVERRIDE
+   Force encounters into a compact clinical timeline.
+   ========================================================= */
+
+.encounter-history-list {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.encounter-history-item {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.nirvana-patient-encounter {
+  display: grid !important;
+  grid-template-columns: 36px minmax(0, 1fr) 24px !important;
+  align-items: center !important;
+  column-gap: 14px !important;
+
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+
+  margin: 0 !important;
+  padding: 14px 20px !important;
+
+  box-sizing: border-box !important;
+}
+
+.nirvana-patient-encounter-main {
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.nirvana-patient-encounter-top {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 7px !important;
+
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.nirvana-patient-encounter-field {
+  margin: 5px 0 0 !important;
+  padding: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+.nirvana-patient-encounter-field > span {
+  display: none !important;
+}
+
+.nirvana-patient-encounter-field > strong {
+  display: block !important;
+  margin: 0 !important;
+  line-height: 1.3 !important;
+}
+
+.nirvana-patient-encounter-meta {
+  margin: 5px 0 0 !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+}
+
+.nirvana-patient-encounter-arrow {
+  align-self: center !important;
+  justify-self: end !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+@media (max-width: 600px) {
+  .nirvana-patient-encounter {
+    grid-template-columns: 30px minmax(0, 1fr) 20px !important;
+    column-gap: 9px !important;
+    padding: 11px 13px !important;
+  }
+
+  .nirvana-patient-encounter-field {
+    margin-top: 4px !important;
+  }
+
+  .nirvana-patient-encounter-meta {
+    margin-top: 4px !important;
+  }
+}
+
+
+/* =========================================================
+   LONGITUDINAL RECORD — REMOVE LEGACY ROW HEIGHT
+   ========================================================= */
+
+.encounter-history-list,
+.encounter-history-item,
+.nirvana-patient-encounter {
+  box-sizing: border-box !important;
+}
+
+.encounter-history-list {
+  display: block !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.encounter-history-item {
+  display: block !important;
+  position: relative !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.nirvana-patient-encounter {
+  display: grid !important;
+  position: relative !important;
+
+  grid-template-columns: 36px minmax(0, 1fr) 24px !important;
+  grid-template-rows: auto !important;
+
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+
+  margin: 0 !important;
+  padding: 12px 20px !important;
+
+  align-items: center !important;
+  justify-content: normal !important;
+  align-content: start !important;
+
+  box-sizing: border-box !important;
+}
+
+.nirvana-patient-encounter-main,
+.nirvana-patient-encounter-top,
+.nirvana-patient-encounter-field,
+.nirvana-patient-encounter-meta {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin-bottom: 0 !important;
+}
+
+.nirvana-patient-encounter-main {
+  width: 100% !important;
+}
+
+.nirvana-patient-encounter-top {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.nirvana-patient-encounter-field {
+  display: block !important;
+  margin: 4px 0 0 !important;
+  padding: 0 !important;
+}
+
+.nirvana-patient-encounter-field > span {
+  display: none !important;
+}
+
+.nirvana-patient-encounter-field > strong {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.25 !important;
+}
+
+.nirvana-patient-encounter-meta {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 5px !important;
+  margin: 4px 0 0 !important;
+  padding: 0 !important;
+}
+
+.nirvana-patient-encounter-arrow {
+  margin: 0 !important;
+  padding: 0 !important;
+  align-self: center !important;
+  justify-self: end !important;
+}
+
+@media (max-width: 600px) {
+  .nirvana-patient-encounter {
+    grid-template-columns: 30px minmax(0, 1fr) 20px !important;
+    column-gap: 9px !important;
+    padding: 10px 13px !important;
+  }
+}
+
+
+/* =========================================================
+   LONGITUDINAL RECORD — FINAL COMPACT VISIT LIST
+   ========================================================= */
+
+.encounter-history-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  row-gap: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.encounter-history-item {
+  display: grid !important;
+  grid-template-columns: 34px minmax(0, 1fr) 22px !important;
+  align-items: center !important;
+  column-gap: 14px !important;
+
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+
+  margin: 0 !important;
+  padding: 12px 24px !important;
+
+  box-sizing: border-box !important;
+
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+
+  text-decoration: none !important;
+}
+
+.encounter-history-item + .encounter-history-item {
+  border-top: 1px solid rgba(31, 75, 66, 0.08) !important;
+}
+
+.encounter-history-number {
+  align-self: start !important;
+  justify-self: center !important;
+
+  margin-top: 4px !important;
+
+  width: 28px !important;
+  height: 28px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+.encounter-history-item > div {
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+.encounter-history-date {
+  display: inline-block !important;
+  margin: 0 !important;
+  line-height: 1.25 !important;
+}
+
+.encounter-history-item > div > div {
+  margin-top: 3px !important;
+  line-height: 1.3 !important;
+}
+
+.encounter-history-item > div > div strong {
+  font-size: 12px !important;
+}
+
+.encounter-history-item > span:last-child {
+  justify-self: end !important;
+  align-self: center !important;
+  margin: 0 !important;
+}
+
+@media (max-width: 600px) {
+  .encounter-history-item {
+    grid-template-columns: 28px minmax(0, 1fr) 18px !important;
+    column-gap: 9px !important;
+    padding: 10px 14px !important;
+  }
+
+  .encounter-history-number {
+    width: 25px !important;
+    height: 25px !important;
+    font-size: 12px !important;
+  }
+}
+
+
+/* =========================================================
+   LONGITUDINAL RECORD — TIGHT CLINICAL ROWS
+   ========================================================= */
+
+.encounter-history-item {
+  padding: 8px 24px !important;
+}
+
+.encounter-history-number {
+  margin-top: 2px !important;
+}
+
+.encounter-history-date {
+  line-height: 1.15 !important;
+}
+
+.encounter-history-item > div > div {
+  margin-top: 2px !important;
+  line-height: 1.2 !important;
+}
+
+.encounter-history-item > div > div[style] {
+  margin-top: 2px !important;
+}
+
+.encounter-history-item > div > div:nth-of-type(n + 2) {
+  margin-top: 3px !important;
+}
+
+@media (max-width: 600px) {
+  .encounter-history-item {
+    padding: 8px 14px !important;
+  }
+}
+

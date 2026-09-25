@@ -18,14 +18,30 @@ type Patient = {
   created_at: string
 }
 
+type PrescriptionSummary = {
+  id: string
+  encounter_id: string
+  status: string
+  change_reason: string | null
+  supersedes_prescription_id: string | null
+}
+
+type StructuredInvestigation = {
+  code?: unknown
+  display_name?: unknown
+}
+
 type ClinicalEncounterSummary = {
   id: string
   encounter_date: string
   encounter_type: string
   status: string
+  chief_complaint: string | null
   diagnosis: string | null
   ayurvedic_diagnosis: string | null
   treatment_plan: string | null
+  investigations: string | null
+  follow_up_advice: string | null
   modern_structured_diagnoses: string[]
   diagnosis_coding_metadata: {
     concepts?: Array<{
@@ -33,6 +49,7 @@ type ClinicalEncounterSummary = {
       display_name?: unknown
     }>
   }
+  structured_investigations: Array<string | StructuredInvestigation>
   created_at: string
 }
 
@@ -83,6 +100,7 @@ export default function PatientDetailPage() {
 
   const [patient, setPatient] = useState<Patient | null>(null)
   const [encounters, setEncounters] = useState<ClinicalEncounterSummary[]>([])
+  const [prescriptions, setPrescriptions] = useState<PrescriptionSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingEncounters, setLoadingEncounters] = useState(true)
   const [error, setError] = useState('')
@@ -132,19 +150,38 @@ export default function PatientDetailPage() {
       setLoadingEncounters(true)
       setEncounterError('')
 
-      const { data, error } = await supabase
-        .from('clinical_encounters')
-        .select(
-          'id, encounter_date, encounter_type, status, diagnosis, ayurvedic_diagnosis, treatment_plan, modern_structured_diagnoses, diagnosis_coding_metadata, created_at'
-        )
-        .eq('patient_id', id)
-        .order('encounter_date', { ascending: false })
+      const [encountersResult, prescriptionsResult] = await Promise.all([
+        supabase
+          .from('clinical_encounters')
+          .select(
+            'id, encounter_date, encounter_type, status, chief_complaint, diagnosis, ayurvedic_diagnosis, treatment_plan, investigations, follow_up_advice, modern_structured_diagnoses, diagnosis_coding_metadata, structured_investigations, created_at'
+          )
+          .eq('patient_id', id)
+          .order('encounter_date', { ascending: false }),
 
-      if (error) {
-        setEncounterError(error.message)
+        supabase
+          .from('prescriptions')
+          .select(
+            'id, encounter_id, status, change_reason, supersedes_prescription_id'
+          )
+          .eq('patient_id', id)
+          .order('created_at', { ascending: false }),
+      ])
+
+      const firstError =
+        encountersResult.error ?? prescriptionsResult.error
+
+      if (firstError) {
+        setEncounterError(firstError.message)
         setEncounters([])
+        setPrescriptions([])
       } else {
-        setEncounters((data ?? []) as ClinicalEncounterSummary[])
+        setEncounters(
+          (encountersResult.data ?? []) as ClinicalEncounterSummary[],
+        )
+        setPrescriptions(
+          (prescriptionsResult.data ?? []) as PrescriptionSummary[],
+        )
       }
 
       setLoadingEncounters(false)
@@ -203,6 +240,32 @@ export default function PatientDetailPage() {
     }
 
     navigate('/patients')
+  }
+
+  function getPrescriptionSummary(encounterId: string) {
+    const encounterPrescriptions = prescriptions.filter(
+      (prescription) => prescription.encounter_id === encounterId,
+    )
+
+    if (!encounterPrescriptions.length) {
+      return null
+    }
+
+    const active = encounterPrescriptions.filter(
+      (prescription) => prescription.status === 'Active',
+    ).length
+
+    const modified = encounterPrescriptions.some(
+      (prescription) =>
+        Boolean(prescription.supersedes_prescription_id) ||
+        Boolean(prescription.change_reason),
+    )
+
+    return {
+      count: encounterPrescriptions.length,
+      active,
+      modified,
+    }
   }
 
   if (loading) {
@@ -277,8 +340,11 @@ export default function PatientDetailPage() {
         </div>
       </div>
 
-      <section className="account-card">
-        <h2>Patient Information</h2>
+      <details className="patient-info-collapsible">
+        <summary>
+          <span>Patient Information</span>
+          <span className="patient-info-toggle">View details</span>
+        </summary>
 
         <div className="patient-detail-grid">
           <div>
@@ -343,19 +409,17 @@ export default function PatientDetailPage() {
             </strong>
           </div>
         </div>
-      </section>
+      </details>
 
       <section className="clinical-panel">
-        <div className="clinical-section-header">
+        <div className="clinical-section-header nirvana-history-header-compact">
           <div>
-            <p className="eyebrow">LONGITUDINAL RECORD</p>
             <h2>Clinical History</h2>
+            <span className="nirvana-history-count">
+              {encounters.length}{' '}
+              {encounters.length === 1 ? 'encounter' : 'encounters'}
+            </span>
           </div>
-
-          <span className="development-note">
-            {encounters.length}{' '}
-            {encounters.length === 1 ? 'encounter' : 'encounters'}
-          </span>
         </div>
 
         {loadingEncounters ? (
@@ -377,57 +441,112 @@ export default function PatientDetailPage() {
           </div>
         ) : (
           <div className="encounter-history-list">
-        {encounters.map((encounter, index) => (
-          <NavLink
-            key={encounter.id}
-            to={`/clinical/${patient.id}/encounter/${encounter.id}`}
-            className="encounter-history-item"
-          >
-            <span className="encounter-history-number">
-              {index + 1}
-            </span>
+            {encounters.map((encounter, index) => {
+              const prescriptionSummary =
+                getPrescriptionSummary(encounter.id)
 
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <strong className="encounter-history-date">
-                {formatEncounterDate(encounter.encounter_date)}
-              </strong>
+              const structuredInvestigations =
+                encounter.structured_investigations ?? []
 
-              <div
-                style={{
-                  marginTop: 6,
-                  color: 'var(--text-h)',
-                  fontWeight: 600,
-                }}
-              >
-                {encounter.encounter_type || 'Clinical encounter'}
-                {' · '}
-                {encounter.status || 'Open'}
-              </div>
+              const investigationNames = structuredInvestigations
+                .map((item) => {
+                  if (typeof item === 'string') {
+                    return item
+                  }
 
-              <div style={{ marginTop: 8, fontSize: 14 }}>
-                <strong>Diagnosis:</strong>{' '}
-                {getDiagnosisSummary(encounter)}
-              </div>
+                  return String(
+                    item.display_name ?? item.code ?? '',
+                  ).trim()
+                })
+                .filter(Boolean)
 
-              {encounter.ayurvedic_diagnosis?.trim() && (
-                <div style={{ marginTop: 5, fontSize: 14 }}>
-                  <strong>Ayurvedic diagnosis:</strong>{' '}
-                  {encounter.ayurvedic_diagnosis.trim()}
-                </div>
-              )}
+              const investigationSummary =
+                investigationNames.length > 0
+                  ? investigationNames.slice(0, 3).join(', ')
+                  : encounter.investigations?.trim() ?? ''
 
-              {encounter.treatment_plan?.trim() && (
-                <div style={{ marginTop: 5, fontSize: 14 }}>
-                  <strong>Treatment:</strong>{' '}
-                  {encounter.treatment_plan.trim()}
-                </div>
-              )}
-            </div>
+              return (
+                <NavLink
+                  key={encounter.id}
+                  to={`/clinical/${patient.id}/encounter/${encounter.id}`}
+                  className="encounter-history-item nirvana-patient-encounter"
+                >
+                  <span className="encounter-history-number">
+                    {index + 1}
+                  </span>
 
-            <span aria-hidden="true">→</span>
-          </NavLink>
-        ))}
-      </div>
+                  <div className="nirvana-patient-encounter-main">
+                    <div className="nirvana-patient-encounter-top">
+                      <strong className="encounter-history-date">
+                        {formatEncounterDate(encounter.encounter_date)}
+                      </strong>
+
+                      <span className="nirvana-patient-encounter-status">
+                        {encounter.encounter_type || 'Clinical encounter'}
+                        {' · '}
+                        {encounter.status || 'Open'}
+                      </span>
+                    </div>
+
+                    {encounter.chief_complaint?.trim() && (
+                      <div className="nirvana-patient-encounter-field">
+                        <span>Chief complaint</span>
+                        <strong>
+                          {encounter.chief_complaint.trim()}
+                        </strong>
+                      </div>
+                    )}
+
+                    <div className="nirvana-patient-encounter-diagnosis">
+                      {getDiagnosisSummary(encounter)}
+                    </div>
+
+                    <div className="nirvana-patient-encounter-meta">
+                      {investigationSummary && (
+                        <span>
+                          Investigations · {investigationSummary}
+                        </span>
+                      )}
+
+                      {prescriptionSummary && (
+                        <span>
+                          Rx {prescriptionSummary.count}
+                          {prescriptionSummary.active > 0
+                            ? ` · ${prescriptionSummary.active} active`
+                            : ''}
+                        </span>
+                      )}
+
+                      {prescriptionSummary?.modified && (
+                        <span className="nirvana-patient-encounter-change">
+                          ↻ Treatment modified
+                        </span>
+                      )}
+
+                      {encounter.treatment_plan?.trim() && (
+                        <span>
+                          Treatment · {encounter.treatment_plan.trim()}
+                        </span>
+                      )}
+
+                      {encounter.follow_up_advice?.trim() && (
+                        <span>
+                          Follow-up · {encounter.follow_up_advice.trim()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <span
+                    className="nirvana-patient-encounter-arrow"
+                    aria-hidden="true"
+                  >
+                    →
+                  </span>
+                </NavLink>
+              )
+            })}
+          </div>
         )}
       </section>
     </div>
