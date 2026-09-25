@@ -2673,3 +2673,411 @@ body {
     text-align: center;
   }
 }
+
+/* =========================================================
+   NIRVANA — CLINICAL ENCOUNTER TIMELINE
+   ========================================================= */
+
+.nirvana-encounter-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nirvana-encounter-card {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 28px;
+  align-items: start;
+  gap: 14px;
+  padding: 17px 18px;
+  border: 1px solid #dce7e3;
+  border-radius: 14px;
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.nirvana-encounter-card:hover {
+  background: #f7faf9;
+  border-color: #bfd5ce;
+}
+
+.nirvana-encounter-card-index {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #edf5f2;
+  color: #24594d;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.nirvana-encounter-card-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.nirvana-encounter-card-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.nirvana-encounter-card-date {
+  color: #173f35;
+  font-size: 16px;
+}
+
+.nirvana-encounter-card-status {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #eef3f1;
+  color: #5f716c;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.nirvana-encounter-card-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nirvana-encounter-card-field span {
+  color: #788883;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.nirvana-encounter-card-field strong {
+  color: #334640;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.nirvana-encounter-card-arrow {
+  align-self: center;
+  color: #78918a;
+  font-size: 20px;
+}
+
+@media (max-width: 600px) {
+  .nirvana-encounter-card {
+    grid-template-columns: 32px minmax(0, 1fr) 20px;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .nirvana-encounter-card-index {
+    width: 28px;
+    height: 28px;
+  }
+
+  .nirvana-encounter-card-date {
+    font-size: 14px;
+  }
+}
+
+/* =========================================================
+   CLINICAL ENCOUNTER HISTORY — FINAL UI POLISH
+   ========================================================= */
+
+.clinical-org-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.clinical-org-badge span {
+  line-height: 1.2;
+}
+
+.clinical-org-badge strong {
+  line-height: 1.25;
+}
+
+.nirvana-encounter-card {
+  grid-template-columns: 38px minmax(0, 1fr) 24px;
+  padding: 14px 18px;
+}
+
+.nirvana-encounter-card-main {
+  gap: 7px;
+  text-align: left;
+}
+
+.nirvana-encounter-card-top {
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.nirvana-encounter-card-field {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.nirvana-encounter-card-field span {
+  line-height: 1.2;
+}
+
+.nirvana-encounter-card-field strong {
+  line-height: 1.35;
+}
+
+.nirvana-encounter-card-arrow {
+  justify-self: end;
+}
+
+@media (max-width: 600px) {
+  .clinical-org-badge {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .nirvana-encounter-card {
+    grid-template-columns: 30px minmax(0, 1fr) 18px;
+    gap: 9px;
+    padding: 12px 14px;
+  }
+
+  .nirvana-encounter-card-main {
+    gap: 6px;
+  }
+
+  .nirvana-encounter-card-top {
+    gap: 7px;
+  }
+
+  .nirvana-encounter-card-date {
+    font-size: 14px;
+  }
+
+  .nirvana-encounter-card-status {
+    padding: 4px 7px;
+    font-size: 10px;
+  }
+
+  .nirvana-encounter-card-field span {
+    font-size: 10px;
+  }
+
+  .nirvana-encounter-card-field strong {
+    font-size: 12px;
+  }
+}
+
+/* =========================================================
+   CLINICAL ENCOUNTERS — CLEAN HEADER
+   ========================================================= */
+
+.nirvana-encounters-header {
+  margin-bottom: 18px;
+}
+
+.nirvana-encounters-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.nirvana-encounters-patient {
+  padding: 2px 4px 0;
+}
+
+.nirvana-encounters-patient h1 {
+  margin: 3px 0 2px;
+  color: var(--text-h);
+  font-size: 30px;
+  line-height: 1.15;
+}
+
+.nirvana-encounters-patient > span {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.nirvana-encounters-history-panel {
+  margin-top: 0;
+}
+
+.nirvana-encounters-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #e8efed;
+}
+
+.nirvana-encounters-history-header h2 {
+  margin: 3px 0 0;
+  color: var(--text-h);
+  font-size: 20px;
+}
+
+@media (max-width: 600px) {
+  .nirvana-encounters-header {
+    margin-bottom: 12px;
+  }
+
+  .nirvana-encounters-header-top {
+    margin-bottom: 14px;
+  }
+
+  .nirvana-encounters-patient h1 {
+    font-size: 25px;
+  }
+
+  .nirvana-encounters-history-header {
+    padding: 15px 14px;
+  }
+
+  .nirvana-encounters-history-header h2 {
+    font-size: 18px;
+  }
+}
+
+/* =========================================================
+   CLINICAL ENCOUNTERS — COMPACT PATIENT HEADER
+   ========================================================= */
+
+.nirvana-encounters-header {
+  margin-bottom: 14px;
+}
+
+.nirvana-encounters-header-top {
+  margin-bottom: 12px;
+}
+
+.nirvana-encounters-patient {
+  padding: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.nirvana-encounters-patient .eyebrow {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.nirvana-encounters-patient h1 {
+  margin: 0;
+  font-size: 25px;
+  line-height: 1.2;
+}
+
+.nirvana-encounters-patient > span {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.nirvana-encounters-history-panel {
+  margin-top: 0;
+}
+
+.nirvana-encounters-history-header {
+  padding: 14px 18px;
+}
+
+@media (max-width: 600px) {
+  .nirvana-encounters-header-top {
+    margin-bottom: 10px;
+  }
+
+  .nirvana-encounters-patient {
+    gap: 5px;
+  }
+
+  .nirvana-encounters-patient h1 {
+    font-size: 22px;
+  }
+
+  .nirvana-encounters-history-header {
+    padding: 13px 14px;
+  }
+}
+
+/* =========================================================
+   CLINICAL ENCOUNTERS — FINAL PATIENT IDENTITY ALIGNMENT
+   ========================================================= */
+
+.nirvana-encounters-patient {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 3px;
+  padding: 0;
+}
+
+.nirvana-encounters-patient .eyebrow {
+  width: auto;
+  margin: 0;
+}
+
+.nirvana-encounters-patient-identity {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+}
+
+.nirvana-encounters-patient h1 {
+  margin: 0;
+  font-size: 25px;
+  line-height: 1.2;
+  color: var(--text-h);
+}
+
+.nirvana-encounters-patient-identity span {
+  color: var(--text);
+  font-size: 13px;
+}
+
+@media (max-width: 600px) {
+  .nirvana-encounters-patient h1 {
+    font-size: 22px;
+  }
+
+  .nirvana-encounters-patient-identity span {
+    font-size: 12px;
+  }
+}
+
+/* Final encounter-history heading cleanup */
+.nirvana-encounters-history-header {
+  padding: 12px 18px;
+}
+
+.nirvana-encounters-history-header .development-note {
+  padding: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .nirvana-encounters-history-header {
+    padding: 11px 14px;
+  }
+
+  .nirvana-encounters-history-header .development-note {
+    font-size: 12px;
+  }
+}

@@ -12,6 +12,16 @@ type ClinicalEncounter = {
   encounter_type: string
   status: string
   chief_complaint: string | null
+  diagnosis: string | null
+  ayurvedic_diagnosis: string | null
+  treatment_plan: string | null
+  modern_structured_diagnoses: string[]
+  diagnosis_coding_metadata: {
+    concepts?: Array<{
+      code?: unknown
+      display_name?: unknown
+    }>
+  }
   created_at: string
   updated_at: string
 }
@@ -46,12 +56,28 @@ function formatEncounterDate(value: string) {
   })
 }
 
+function getDiagnosisSummary(encounter: ClinicalEncounter) {
+  const modernConcepts =
+    encounter.diagnosis_coding_metadata?.concepts
+      ?.map((concept) => String(concept.display_name ?? '').trim())
+      .filter(Boolean) ?? []
+
+  const modern =
+    modernConcepts.length > 0
+      ? modernConcepts.join(', ')
+      : (encounter.diagnosis ?? '').trim()
+
+  const ayurvedic = (encounter.ayurvedic_diagnosis ?? '').trim()
+
+  if (modern && ayurvedic) return `${modern} • ${ayurvedic}`
+  return modern || ayurvedic || 'Diagnosis not recorded.'
+}
+
 export default function ClinicalEncountersPage() {
   const { patientId } = useParams<{ patientId: string }>()
   const navigate = useNavigate()
 
   const {
-    activeOrganization,
     activeOrganizationId,
     loading: organizationLoading,
   } = useOrganization()
@@ -84,7 +110,7 @@ export default function ClinicalEncountersPage() {
         supabase
           .from('clinical_encounters')
           .select(
-            'id, organization_id, patient_id, created_by, encounter_date, encounter_type, status, chief_complaint, created_at, updated_at'
+            'id, organization_id, patient_id, created_by, encounter_date, encounter_type, status, chief_complaint, diagnosis, ayurvedic_diagnosis, treatment_plan, modern_structured_diagnoses, diagnosis_coding_metadata, created_at, updated_at'
           )
           .eq('patient_id', patientId)
           .eq('organization_id', activeOrganizationId)
@@ -165,63 +191,50 @@ export default function ClinicalEncountersPage() {
 
   return (
     <div className="page clinical-workspace-page">
-      <div className="clinical-header">
-        <div>
-          <p className="eyebrow">CLINICAL ENCOUNTERS</p>
-          <h1>Clinical Encounters</h1>
-        </div>
-
-        <div className="clinical-org-badge">
-          <span>Active organization</span>
-          <strong>
-            {activeOrganization?.name ?? 'Current organization'}
-          </strong>
-        </div>
-      </div>
-
       {error && (
         <div className="nirvana-error" role="alert">
           {error}
         </div>
       )}
 
-      <section className="clinical-panel clinical-patient-summary-card">
-        <div className="clinical-section-header">
-          <div>
-            <p className="eyebrow">PATIENT</p>
-            <h2>{patient.full_name}</h2>
-          </div>
+      <section className="nirvana-encounters-header">
+        <div className="nirvana-encounters-header-top">
+          <NavLink
+            to={`/clinical/${patient.id}`}
+            className="secondary-button"
+          >
+            ← Back to Patient
+          </NavLink>
 
-          <div className="clinical-actions">
-            <NavLink
-              to={`/clinical/${patient.id}`}
-              className="secondary-button"
-            >
-              Back to Patient
-            </NavLink>
-
-            <NavLink
-              to={`/clinical/${patient.id}?newVisit=true`}
-              className="primary-button"
-            >
-              + New Visit
-            </NavLink>
-          </div>
+          <NavLink
+            to={`/clinical/${patient.id}?newVisit=true`}
+            className="primary-button"
+          >
+            + New Visit
+          </NavLink>
         </div>
 
-        <div className="clinical-patient-meta-row">
-          <span>{patient.patient_code}</span>
-          <span>{encounters.length} encounter{encounters.length === 1 ? '' : 's'}</span>
+        <div className="nirvana-encounters-patient">
+          <p className="eyebrow">PATIENT</p>
+          <div className="nirvana-encounters-patient-identity">
+            <h1>{patient.full_name}</h1>
+            <span>· {patient.patient_code}</span>
+          </div>
         </div>
       </section>
 
-      <section className="clinical-panel">
-      <div className="clinical-section-header">
-        <div>
-          <p className="eyebrow">VISITS</p>
-          <h2>Encounter history</h2>
+      <section className="clinical-panel nirvana-encounters-history-panel">
+        <div className="nirvana-encounters-history-header">
+          <div>
+            <p className="eyebrow">LONGITUDINAL RECORD</p>
+            <h2>Encounter History</h2>
+          </div>
+
+          <span className="development-note">
+            {encounters.length}{' '}
+            {encounters.length === 1 ? 'encounter' : 'encounters'}
+          </span>
         </div>
-      </div>
 
       {encounters.length === 0 ? (
         <div className="empty-patients">
@@ -237,18 +250,56 @@ export default function ClinicalEncountersPage() {
           </NavLink>
         </div>
       ) : (
-        <div className="encounter-history-list">
+        <div className="nirvana-encounter-timeline">
           {encounters.map((encounter, index) => (
             <NavLink
               key={encounter.id}
               to={`/clinical/${patient.id}/encounter/${encounter.id}`}
-              className="encounter-history-item"
+              className="nirvana-encounter-card"
             >
-              <span className="encounter-history-number">
-                {["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"][index] ?? `${index + 1}.`}
-              </span>
+              <div className="nirvana-encounter-card-index">
+                {index + 1}
+              </div>
 
-              <span className="encounter-history-date">{formatEncounterDate(encounter.encounter_date)}</span>
+              <div className="nirvana-encounter-card-main">
+                <div className="nirvana-encounter-card-top">
+                  <strong className="nirvana-encounter-card-date">
+                    {formatEncounterDate(encounter.encounter_date)}
+                  </strong>
+
+                  <span className="nirvana-encounter-card-status">
+                    {encounter.encounter_type || 'Clinical encounter'}
+                    {' · '}
+                    {encounter.status || 'Open'}
+                  </span>
+                </div>
+
+                {encounter.chief_complaint?.trim() && (
+                  <div className="nirvana-encounter-card-field">
+                    <span>Chief complaint</span>
+                    <strong>{encounter.chief_complaint.trim()}</strong>
+                  </div>
+                )}
+
+                <div className="nirvana-encounter-card-field">
+                  <span>Diagnosis</span>
+                  <strong>{getDiagnosisSummary(encounter)}</strong>
+                </div>
+
+                {encounter.treatment_plan?.trim() && (
+                  <div className="nirvana-encounter-card-field">
+                    <span>Treatment</span>
+                    <strong>{encounter.treatment_plan.trim()}</strong>
+                  </div>
+                )}
+              </div>
+
+              <span
+                className="nirvana-encounter-card-arrow"
+                aria-hidden="true"
+              >
+                →
+              </span>
             </NavLink>
           ))}
         </div>
