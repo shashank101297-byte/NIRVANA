@@ -468,6 +468,7 @@ export default function PrescriptionHistory({
                       {prescriptionItems[0] && (
                         <p className="prescription-history-summary">
                           {[
+                            prescriptionItems[0].strength,
                             prescriptionItems[0].dose,
                             prescriptionItems[0].frequency,
                             prescriptionItems[0].route,
@@ -529,6 +530,13 @@ export default function PrescriptionHistory({
                             </div>
 
                             <div className="prescription-history-dose">
+                              {item.strength && (
+                                <span>
+                                  <b>Strength</b>
+                                  {item.strength}
+                                </span>
+                              )}
+
                               {item.dose && (
                                 <span>
                                   <b>Dose</b>
