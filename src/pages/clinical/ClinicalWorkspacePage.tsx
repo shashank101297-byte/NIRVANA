@@ -47,6 +47,10 @@ export default function ClinicalWorkspacePage() {
   const [, setEncounterLoading] = useState(false)
   const [showNewVisit, setShowNewVisit] = useState(false)
   const [savedEncounterId, setSavedEncounterId] = useState<string | null>(null)
+  const [encounterCreatedForCurrentVisit, setEncounterCreatedForCurrentVisit] =
+    useState(false)
+  const [appointmentPreviousStatus, setAppointmentPreviousStatus] =
+    useState<'Scheduled' | 'Confirmed' | null>(null)
   const [savingVisit, setSavingVisit] = useState(false)
   const [preparingVisit, setPreparingVisit] = useState(false)
   const [error, setError] = useState('')
@@ -211,23 +215,6 @@ export default function ClinicalWorkspacePage() {
     if (patientId && searchParams.get('newVisit') === 'true') {
       setShowNewVisit(true)
 
-      if (appointmentId && activeOrganizationId) {
-        void (async () => {
-          const { error: appointmentError } = await supabase
-            .from('appointments')
-            .update({ status: 'In Progress' })
-            .eq('id', appointmentId)
-            .eq('patient_id', patientId)
-            .eq('organization_id', activeOrganizationId)
-            .in('status', ['Scheduled', 'Confirmed'])
-
-          if (appointmentError) {
-            setError(
-              `Unable to open the appointment for consultation: ${appointmentError.message}`,
-            )
-          }
-        })()
-      }
     }
 
     if (!activeOrganizationId) {
@@ -284,6 +271,51 @@ export default function ClinicalWorkspacePage() {
       return
     }
 
+    let previousAppointmentStatus: 'Scheduled' | 'Confirmed' | null = null
+
+    if (appointmentId) {
+      const {
+        data: appointment,
+        error: appointmentLookupError,
+      } = await supabase
+        .from('appointments')
+        .select('id, status')
+        .eq('id', appointmentId)
+        .eq('patient_id', selectedPatient.id)
+        .eq('organization_id', activeOrganizationId)
+        .single()
+
+      if (appointmentLookupError || !appointment) {
+        setError(
+          appointmentLookupError?.message ??
+            'The appointment could not be loaded for consultation.',
+        )
+        setPreparingVisit(false)
+        return
+      }
+
+      if (appointment.status === 'Scheduled' || appointment.status === 'Confirmed') {
+        previousAppointmentStatus = appointment.status
+        setAppointmentPreviousStatus(appointment.status)
+
+        const { error: appointmentUpdateError } = await supabase
+          .from('appointments')
+          .update({ status: 'In Progress' })
+          .eq('id', appointmentId)
+          .eq('patient_id', selectedPatient.id)
+          .eq('organization_id', activeOrganizationId)
+          .eq('status', appointment.status)
+
+        if (appointmentUpdateError) {
+          setError(
+            `Unable to open the appointment for consultation: ${appointmentUpdateError.message}`,
+          )
+          setPreparingVisit(false)
+          return
+        }
+      }
+    }
+
     // Appointment-linked visits must reuse an existing encounter if one
     // already exists. The database constraint also protects against races.
     if (appointmentId) {
@@ -308,6 +340,7 @@ export default function ClinicalWorkspacePage() {
 
       if (existingEncounter) {
         setSavedEncounterId(existingEncounter.id)
+        setEncounterCreatedForCurrentVisit(false)
         setPreparingVisit(false)
         return
       }
@@ -319,6 +352,7 @@ export default function ClinicalWorkspacePage() {
         organization_id: activeOrganizationId,
         patient_id: selectedPatient.id,
         appointment_id: appointmentId || null,
+        appointment_previous_status: previousAppointmentStatus,
         created_by: userData.user.id,
         encounter_date: new Date().toISOString(),
         encounter_type: encounterType,
@@ -359,6 +393,7 @@ export default function ClinicalWorkspacePage() {
     }
 
     setSavedEncounterId(createdEncounter.id)
+    setEncounterCreatedForCurrentVisit(true)
     setPreparingVisit(false)
   }
 
@@ -377,6 +412,60 @@ export default function ClinicalWorkspacePage() {
     activeOrganizationId,
     savedEncounterId,
   ])
+
+  async function handleCloseNewVisit() {
+    setError('')
+
+    if (!savedEncounterId || !encounterCreatedForCurrentVisit) {
+      setShowNewVisit(false)
+      setSavedEncounterId(null)
+      setEncounterCreatedForCurrentVisit(false)
+      setAppointmentPreviousStatus(null)
+      return
+    }
+
+    const { data: abandonedEncounter, error: abandonError } = await supabase
+      .from('clinical_encounters')
+      .update({ status: 'Abandoned' })
+      .eq('id', savedEncounterId)
+      .eq('patient_id', selectedPatient?.id ?? '')
+      .eq('organization_id', activeOrganizationId ?? '')
+      .eq('status', 'Open')
+      .select('id')
+      .maybeSingle()
+
+    if (abandonError) {
+      setError(`Unable to discard the unfinished visit: ${abandonError.message}`)
+      return
+    }
+
+    if (!abandonedEncounter) {
+      setError('The unfinished visit could not be discarded safely.')
+      return
+    }
+
+    if (appointmentId && appointmentPreviousStatus) {
+      const { error: restoreAppointmentError } = await supabase
+        .from('appointments')
+        .update({ status: appointmentPreviousStatus })
+        .eq('id', appointmentId)
+        .eq('patient_id', selectedPatient?.id ?? '')
+        .eq('organization_id', activeOrganizationId ?? '')
+        .eq('status', 'In Progress')
+
+      if (restoreAppointmentError) {
+        setError(
+          `Visit discarded, but the appointment status could not be restored: ${restoreAppointmentError.message}`,
+        )
+        return
+      }
+    }
+
+    setShowNewVisit(false)
+    setSavedEncounterId(null)
+    setEncounterCreatedForCurrentVisit(false)
+    setAppointmentPreviousStatus(null)
+  }
 
   async function handleCreateVisit(event: React.FormEvent) {
     event.preventDefault()
@@ -687,8 +776,13 @@ export default function ClinicalWorkspacePage() {
                   <p className="eyebrow">NEW VISIT</p>
                   <h2>Create encounter</h2>
                 </div>
-                <button type="button" className="secondary-button" onClick={() => setShowNewVisit(false)}>
-                  Close
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => void handleCloseNewVisit()}
+                  disabled={savingVisit || preparingVisit}
+                >
+                  Close / Discard
                 </button>
               </div>
 
