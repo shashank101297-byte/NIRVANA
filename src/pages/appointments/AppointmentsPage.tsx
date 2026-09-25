@@ -47,6 +47,18 @@ const appointmentStatuses = [
   'No-show',
 ]
 
+function getManualAppointmentStatuses(status: string) {
+  if (status === 'Scheduled') {
+    return ['Scheduled', 'Confirmed', 'Cancelled', 'No-show']
+  }
+
+  if (status === 'Confirmed') {
+    return ['Confirmed', 'Cancelled', 'No-show']
+  }
+
+  return [status]
+}
+
 function toLocalDateTimeValue(date: Date) {
   const offset = date.getTimezoneOffset()
   const local = new Date(date.getTime() - offset * 60000)
@@ -380,29 +392,58 @@ function resetForm() {
     await loadAppointments()
   }
 
-  async function cancelAppointment(appointmentId: string) {
+  async function cancelAppointment(
+    appointmentId: string,
+    currentStatus: string,
+  ) {
     const confirmed = window.confirm(
       'Are you sure you want to cancel this appointment?'
     )
 
     if (!confirmed) return
 
-    await updateStatus(appointmentId, 'Cancelled')
+    await updateStatus(
+      appointmentId,
+      'Cancelled',
+      currentStatus,
+    )
   }
 
   async function updateStatus(
     appointmentId: string,
     status: string,
+    currentStatus: string,
   ) {
     setError('')
 
-    const { error: updateError } = await supabase
-      .from('appointments')
-      .update({ status })
-      .eq('id', appointmentId)
+    const allowedStatuses =
+      getManualAppointmentStatuses(currentStatus)
+
+    if (!allowedStatuses.includes(status)) {
+      setError(
+        `Invalid appointment status transition: ${currentStatus} → ${status}.`,
+      )
+      return
+    }
+
+    const { data: updatedAppointment, error: updateError } =
+      await supabase
+        .from('appointments')
+        .update({ status })
+        .eq('id', appointmentId)
+        .eq('status', currentStatus)
+        .select('id')
+        .maybeSingle()
 
     if (updateError) {
       setError(updateError.message)
+      return
+    }
+
+    if (!updatedAppointment) {
+      setError(
+        'The appointment status changed elsewhere. Please refresh the schedule.',
+      )
       return
     }
 
@@ -917,7 +958,10 @@ function resetForm() {
                     type="button"
                     className="secondary-button"
                     onClick={(event) => {
-                      void cancelAppointment(appointment.id)
+                      void cancelAppointment(
+                        appointment.id,
+                        appointment.status,
+                      )
                       const details = event.currentTarget.closest('details')
                       if (details) {
                         details.open = false
@@ -961,26 +1005,29 @@ function resetForm() {
                                   Patient
                                 </NavLink>
 
-                                {appointment.status !== 'Cancelled' &&
-                                 appointment.status !== 'Completed' &&
-                                 appointment.status !== 'No-show' && (
-                                 <select
-                                   value={appointment.status}
-                                   onChange={(event) =>
-                                     void updateStatus(
-                                       appointment.id,
-                                       event.target.value
-                                     )
-                                   }
-                                 >
-                                   {appointmentStatuses.map((status) => (
-                                     <option key={status} value={status}>
-                                       {status}
-                                     </option>
-                                   ))}
-                                 </select>
-                               )}
-                              </div>
+                                {['Scheduled', 'Confirmed'].includes(
+                                  appointment.status,
+                                ) && (
+                                  <select
+                                    value={appointment.status}
+                                    onChange={(event) =>
+                                      void updateStatus(
+                                        appointment.id,
+                                        event.target.value,
+                                        appointment.status,
+                                      )
+                                    }
+                                  >
+                                    {getManualAppointmentStatuses(
+                                      appointment.status,
+                                    ).map((status) => (
+                                      <option key={status} value={status}>
+                                        {status}
+                                      </option>
+                                    ))}
+                                  </select>
+                                )}
+</div>
                             </details>
                           </td>
                       </tr>

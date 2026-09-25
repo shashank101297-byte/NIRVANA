@@ -210,13 +210,22 @@ export default function ClinicalWorkspacePage() {
     if (patientId && searchParams.get('newVisit') === 'true') {
       setShowNewVisit(true)
 
-      if (appointmentId) {
-        void supabase
-          .from('appointments')
-          .update({ status: 'In Progress' })
-          .eq('id', appointmentId)
-          .eq('patient_id', patientId)
-          .eq('organization_id', activeOrganizationId)
+      if (appointmentId && activeOrganizationId) {
+        void (async () => {
+          const { error: appointmentError } = await supabase
+            .from('appointments')
+            .update({ status: 'In Progress' })
+            .eq('id', appointmentId)
+            .eq('patient_id', patientId)
+            .eq('organization_id', activeOrganizationId)
+            .in('status', ['Scheduled', 'Confirmed'])
+
+          if (appointmentError) {
+            setError(
+              `Unable to open the appointment for consultation: ${appointmentError.message}`,
+            )
+          }
+        })()
       }
     }
 
@@ -275,6 +284,37 @@ export default function ClinicalWorkspacePage() {
 
     setSavingVisit(true)
     setError('')
+
+    if (appointmentId) {
+      const {
+        data: existingEncounter,
+        error: existingEncounterError,
+      } = await supabase
+        .from('clinical_encounters')
+        .select('id')
+        .eq('appointment_id', appointmentId)
+        .eq('patient_id', selectedPatient.id)
+        .eq('organization_id', activeOrganizationId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (existingEncounterError) {
+        setError(existingEncounterError.message)
+        setSavingVisit(false)
+        return
+      }
+
+      if (existingEncounter) {
+        setSavedEncounterId(existingEncounter.id)
+        setShowNewVisit(false)
+        setSavingVisit(false)
+        navigate(
+          `/clinical/${selectedPatient.id}/encounter/${existingEncounter.id}`,
+        )
+        return
+      }
+    }
 
     const { data: createdEncounter, error: insertError } = await supabase
       .from('clinical_encounters')
@@ -336,22 +376,35 @@ export default function ClinicalWorkspacePage() {
       .single()
 
     if (insertError || !createdEncounter) {
-      setError(insertError.message)
+      setError(
+        insertError?.message ??
+          'The clinical encounter could not be saved.',
+      )
       setSavingVisit(false)
       return
     }
 
     if (appointmentId) {
-      const { error: appointmentUpdateError } = await supabase
+      const {
+        data: completedAppointment,
+        error: appointmentUpdateError,
+      } = await supabase
         .from('appointments')
         .update({ status: 'Completed' })
         .eq('id', appointmentId)
         .eq('patient_id', selectedPatient.id)
         .eq('organization_id', activeOrganizationId)
+        .eq('status', 'In Progress')
+        .select('id')
+        .maybeSingle()
 
       if (appointmentUpdateError) {
         setError(
           `Visit saved, but the appointment status could not be updated: ${appointmentUpdateError.message}`,
+        )
+      } else if (!completedAppointment) {
+        setError(
+          'Visit saved, but the appointment was not in In Progress status. Please verify the appointment status.',
         )
       }
     }
