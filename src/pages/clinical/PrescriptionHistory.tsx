@@ -25,6 +25,7 @@ type Item = {
   duration_unit: string | null
   quantity: string | null
   anupana: string | null
+  strength: string | null
   instructions: string | null
 }
 
@@ -98,7 +99,7 @@ export default function PrescriptionHistory({
         supabase
           .from('prescription_items')
           .select(
-            'prescription_id, line_no, therapy_system, medicine_name, formulation, dose, route, frequency, timing, duration_value, duration_unit, quantity, anupana, instructions',
+            'prescription_id, line_no, therapy_system, medicine_name, formulation, strength, dose, route, frequency, timing, duration_value, duration_unit, quantity, anupana, instructions',
           )
           .in('prescription_id', prescriptionIds)
           .order('line_no', { ascending: true }),
@@ -131,6 +132,24 @@ export default function PrescriptionHistory({
   useEffect(() => {
     void loadHistory()
   }, [patientId, organizationId, currentPrescriptionId])
+
+  useEffect(() => {
+    const handlePrescriptionUpdated = () => {
+      void loadHistory()
+    }
+
+    window.addEventListener(
+      'nirvana:prescription-updated',
+      handlePrescriptionUpdated,
+    )
+
+    return () => {
+      window.removeEventListener(
+        'nirvana:prescription-updated',
+        handlePrescriptionUpdated,
+      )
+    }
+  }, [patientId, organizationId])
 
   function getEncounterDate(encounterId: string) {
     const encounter = encounters.find(

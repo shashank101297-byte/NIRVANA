@@ -87,7 +87,7 @@ export default function PrescriptionSection({
     const { data: itemData, error: itemError } = await supabase
       .from('prescription_items')
       .select(
-        'therapy_system, medicine_name, formulation, dose, route, frequency, timing, duration_value, duration_unit, quantity, anupana, instructions',
+        'therapy_system, medicine_name, formulation, strength, dose, route, frequency, timing, duration_value, duration_unit, quantity, anupana, instructions',
       )
       .eq('prescription_id', data.id)
       .order('line_no', { ascending: true })
@@ -207,8 +207,17 @@ export default function PrescriptionSection({
 
     setMessage(
       prescriptionId
-        ? 'New prescription created. Previous prescription preserved.'
+        ? 'Prescription updated successfully.'
         : 'Prescription saved successfully.',
+    )
+
+    window.dispatchEvent(
+      new CustomEvent('nirvana:prescription-updated', {
+        detail: {
+          prescriptionId: prescriptionId ?? null,
+          encounterId,
+        },
+      }),
     )
 
     setSaving(false)
@@ -317,6 +326,7 @@ export default function PrescriptionSection({
               <p>
                 {[
                   item.formulation,
+                  item.strength,
                   item.dose,
                   item.route,
                   item.frequency,
@@ -441,20 +451,20 @@ export default function PrescriptionSection({
                 </div>
 
 
-                <div className="form-field">
-      {item.therapy_system === 'Modern' && (
-        <div className="form-field">
-          <label>Strength</label>
-          <input
-            value={item.strength}
-            onChange={(event) =>
-              updateItem(index, 'strength', event.target.value)
-            }
-            placeholder="e.g. 500 mg, 10 mg/5 mL"
-          />
-        </div>
-      )}
+                {item.therapy_system === 'Modern' && (
+                  <div className="form-field">
+                    <label>Strength</label>
+                    <input
+                      value={item.strength}
+                      onChange={(event) =>
+                        updateItem(index, 'strength', event.target.value)
+                      }
+                      placeholder="e.g. 500 mg, 10 mg/5 mL"
+                    />
+                  </div>
+                )}
 
+                <div className="form-field">
                   <label>Dose</label>
                   <input
                     value={item.dose}
