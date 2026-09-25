@@ -375,11 +375,47 @@ export default function ClinicalWorkspacePage() {
       .select('id')
       .single()
 
-    if (insertError || !createdEncounter) {
-      setError(
-        insertError?.message ??
-          'The clinical encounter could not be saved.',
-      )
+    if (insertError) {
+      // The database unique constraint protects appointment-linked
+      // encounters from concurrent duplicate submissions. If another
+      // session created the encounter between our pre-check and insert,
+      // recover gracefully by opening that existing encounter.
+      if (appointmentId && insertError.code === '23505') {
+        const {
+          data: existingEncounterAfterConflict,
+          error: existingEncounterAfterConflictError,
+        } = await supabase
+          .from('clinical_encounters')
+          .select('id')
+          .eq('appointment_id', appointmentId)
+          .eq('patient_id', selectedPatient.id)
+          .eq('organization_id', activeOrganizationId)
+          .maybeSingle()
+
+        if (existingEncounterAfterConflictError) {
+          setError(existingEncounterAfterConflictError.message)
+          setSavingVisit(false)
+          return
+        }
+
+        if (existingEncounterAfterConflict) {
+          setSavedEncounterId(existingEncounterAfterConflict.id)
+          setShowNewVisit(false)
+          setSavingVisit(false)
+          navigate(
+            `/clinical/${selectedPatient.id}/encounter/${existingEncounterAfterConflict.id}`,
+          )
+          return
+        }
+      }
+
+      setError(insertError.message)
+      setSavingVisit(false)
+      return
+    }
+
+    if (!createdEncounter) {
+      setError('The clinical encounter could not be saved.')
       setSavingVisit(false)
       return
     }
