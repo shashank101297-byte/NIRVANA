@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useOrganization } from '../../context/OrganizationContext'
 import PrescriptionSection from './PrescriptionSection'
 import PrescriptionHistory from './PrescriptionHistory'
+import ClinicalRecordVersionHistory from './ClinicalRecordVersionHistory'
 import TerminologySelect from './TerminologySelect'
 
 type ClinicalEncounter = {
@@ -1005,6 +1006,11 @@ export default function ClinicalEncounterPage() {
       <PrescriptionHistory
         patientId={encounter.patient_id}
         organizationId={activeOrganizationId!}
+      />
+
+      <ClinicalRecordVersionHistory
+        encounterId={encounter.id}
+        organizationId={activeOrganizationId}
       />
     </div>
   )
