@@ -175,6 +175,7 @@ export default function ClinicalEncounterPage() {
   const [editing, setEditing] = useState(false)
   const [error, setError] = useState('')
   const [saveMessage, setSaveMessage] = useState('')
+  const [finalizingEncounter, setFinalizingEncounter] = useState(false)
 
   const [draft, setDraft] = useState<DocumentationDraft | null>(null)
 
@@ -201,6 +202,56 @@ export default function ClinicalEncounterPage() {
     differentialDiagnosisCodingMetadata,
     setDifferentialDiagnosisCodingMetadata,
   ] = useState<Array<Record<string, unknown>>>([])
+
+  async function handleFinalizeEncounter() {
+    if (!encounter?.id) {
+      setError('The clinical encounter could not be identified.')
+      return
+    }
+
+    if (encounter.status === 'Finalized') {
+      return
+    }
+
+    const confirmed = window.confirm(
+      'Finalize this consultation?\\n\\nAfter finalization, clinical changes will require an amendment reason and will be recorded in the version history.',
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setFinalizingEncounter(true)
+    setError('')
+    setSaveMessage('')
+
+    const { data, error: finalizeError } = await supabase.rpc(
+      'finalize_clinical_encounter',
+      {
+        p_encounter_id: encounter.id,
+      },
+    )
+
+    if (finalizeError) {
+      setError(finalizeError.message)
+      setFinalizingEncounter(false)
+      return
+    }
+
+    if (!data) {
+      setError('The consultation could not be finalized.')
+      setFinalizingEncounter(false)
+      return
+    }
+
+    const finalizedEncounter = data as ClinicalEncounter
+
+    setEncounter(finalizedEncounter)
+    setDraft(createDraft(finalizedEncounter))
+    setSaveMessage('Consultation finalized successfully.')
+    window.dispatchEvent(new Event('nirvana:clinical-record-history-refresh'))
+    setFinalizingEncounter(false)
+  }
 
   useEffect(() => {
     async function loadEncounter() {
@@ -379,9 +430,7 @@ export default function ClinicalEncounterPage() {
     setError('')
     setSaveMessage('')
 
-    const { data, error: updateError } = await supabase
-      .from('clinical_encounters')
-      .update({
+    const encounterChanges = {
         chief_complaint: draft.chief_complaint.trim(),
         history_of_present_illness: draft.history_of_present_illness.trim(),
         past_history: draft.past_history.trim(),
@@ -435,7 +484,40 @@ export default function ClinicalEncounterPage() {
         follow_up_advice: draft.follow_up_advice.trim(),
 
         updated_at: new Date().toISOString(),
-      })
+
+    }
+
+    let data: ClinicalEncounter | null = null
+    let updateError: { message: string } | null = null
+
+    if (encounter.status === 'Finalized') {
+      const amendmentReason = window.prompt(
+        'Enter the reason for amending this finalized clinical record:'
+      )
+
+      if (!amendmentReason?.trim()) {
+        setError('Amendment cancelled. A reason is required.')
+        setSaving(false)
+        return
+      }
+
+      const { updated_at: _updatedAt, ...amendmentChanges } = encounterChanges
+
+      const { data: amendedData, error: amendmentError } = await supabase.rpc(
+        'amend_clinical_encounter',
+        {
+          p_encounter_id: encounter.id,
+          p_reason: amendmentReason.trim(),
+          p_changes: amendmentChanges,
+        }
+      )
+
+      data = amendedData as ClinicalEncounter | null
+      updateError = amendmentError
+    } else {
+      const { data: updatedData, error: normalUpdateError } = await supabase
+        .from('clinical_encounters')
+        .update(encounterChanges)
       .eq('id', encounter.id)
       .eq('patient_id', encounter.patient_id)
       .eq('organization_id', activeOrganizationId)
@@ -482,6 +564,10 @@ export default function ClinicalEncounterPage() {
       `)
       .single()
 
+      data = updatedData as ClinicalEncounter | null
+      updateError = normalUpdateError
+    }
+
     if (updateError) {
       setError(updateError.message)
       setSaving(false)
@@ -493,7 +579,8 @@ export default function ClinicalEncounterPage() {
     setEncounter(updatedEncounter)
     setDraft(createDraft(updatedEncounter))
     setEditing(false)
-    setSaveMessage('Encounter updated successfully.')
+    setSaveMessage(encounter.status === 'Finalized' ? 'Clinical record amended successfully.' : 'Encounter updated successfully.')
+    window.dispatchEvent(new Event('nirvana:clinical-record-history-refresh'))
     setSaving(false)
   }
 
@@ -623,24 +710,54 @@ export default function ClinicalEncounterPage() {
           </div>
 
           <div className="clinical-actions">
-            <NavLink
-              to={`/clinical/${patientId}`}
-              className="secondary-button"
-            >
-              Back to Patient
-            </NavLink>
+          <NavLink
+            to={`/clinical/${patientId}`}
+            className="secondary-button"
+          >
+            Back to Patient
+          </NavLink>
 
-            {!editing && (
-              <button
-                type="button"
-                className="primary-button"
-                onClick={startEditing}
-              >
-                Edit Encounter
-              </button>
-            )}
-          </div>
+          {!editing && (
+            <button
+              type="button"
+              className="primary-button"
+              onClick={startEditing}
+            >
+              Edit Encounter
+            </button>
+          )}
+
+          {!editing && encounter.status === 'Open' && (
+            <button
+              type="button"
+              className="primary-button"
+              data-nirvana-finalize-encounter="true"
+              onClick={handleFinalizeEncounter}
+              disabled={finalizingEncounter}
+            >
+              {finalizingEncounter
+                ? 'Finalizing...'
+                : 'Finalize Consultation'}
+            </button>
+          )}
+
+          {!editing && encounter.status === 'Finalized' && (
+            <span
+              className="clinical-finalized-banner"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                background: '#f1f5f9',
+                fontWeight: 600,
+              }}
+            >
+              ✓ Consultation Finalized
+            </span>
+          )}
         </div>
+      </div>
 
         <div className="patient-detail-grid clinical-patient-grid">
           <div>

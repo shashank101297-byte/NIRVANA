@@ -3,8 +3,10 @@ import { supabase } from '../../lib/supabase'
 
 type Version = {
   id: string
-  operation: 'INSERT' | 'UPDATE' | 'DELETE' | 'BASELINE'
+  operation: 'INSERT' | 'UPDATE' | 'DELETE' | 'BASELINE' | 'FINALIZE' | 'AMENDMENT'
   actor_user_id: string | null
+  change_reason?: string | null
+  version_number?: number | null
   snapshot: Record<string, unknown>
   created_at: string
 }
@@ -56,6 +58,7 @@ const hidden = new Set([
   'created_by',
   'created_at',
   'updated_at',
+  'finalized_by',
 ])
 
 function formatDate(value: string) {
@@ -230,7 +233,7 @@ function Snapshot({
           wordBreak: 'break-word',
         }}
       >
-        {formatValue(item)}
+        {typeof item === 'string' && /(^|_)(at|date|time)$/.test(key) && !Number.isNaN(Date.parse(item)) ? formatDate(item) : formatValue(item)}
       </div>
     </div>
   )
@@ -308,10 +311,10 @@ export default function ClinicalRecordVersionHistory({
 
   useEffect(() => {
     async function load() {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('clinical_record_versions')
         .select(
-          'id, operation, actor_user_id, snapshot, created_at',
+          'id, operation, actor_user_id, snapshot, created_at, change_reason, version_number',
         )
         .eq(
           'entity_type',
@@ -326,11 +329,14 @@ export default function ClinicalRecordVersionHistory({
           ascending: false,
         })
 
+      if (error) console.error('Clinical record history:', error.message)
       setVersions((data ?? []) as Version[])
       setLoading(false)
     }
 
     void load()
+    window.addEventListener('nirvana:clinical-record-history-refresh', load)
+    return () => window.removeEventListener('nirvana:clinical-record-history-refresh', load)
   }, [encounterId, organizationId])
 
   if (loading) {
@@ -413,7 +419,7 @@ export default function ClinicalRecordVersionHistory({
                     : version.operation ===
                       'DELETE'
                       ? 'Record deleted'
-                      : 'Record updated'
+                      : version.operation === 'AMENDMENT' ? 'Record amended' : version.operation === 'FINALIZE' ? 'Consultation finalized' : 'Record updated'
 
                 return (
                   <div
@@ -442,6 +448,9 @@ export default function ClinicalRecordVersionHistory({
                           )}{' '}
                           · Clinician
                         </small>
+                {version.operation === 'AMENDMENT' && version.snapshot?.amendment_count != null && <small>Amendment #{String(version.snapshot.amendment_count)} · </small>}
+{version.version_number != null && <small>Version {version.version_number}</small>}
+{version.operation === 'AMENDMENT' && <p><strong>Reason for change:</strong> {version.change_reason || 'Reason not recorded'}</p>}
                       </span>
 
                       <span>

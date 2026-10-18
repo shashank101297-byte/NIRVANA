@@ -38,6 +38,7 @@ type Version = {
   id: string
   operation: 'INSERT' | 'UPDATE' | 'DELETE' | 'BASELINE'
   snapshot: Record<string, unknown>
+  supersedes_prescription_id: string | null
   created_at: string
 }
 
@@ -131,8 +132,8 @@ export default function PrescriptionHistory({
     })
   }
 
-  function getVersionTitle(operation: Version['operation']) {
-    if (operation === 'BASELINE' || operation === 'INSERT') {
+  function getVersionTitle(operation: Version['operation'], supersedesId?: string | null) {
+    if ((operation === 'BASELINE' || operation === 'INSERT') && !supersedesId) {
       return 'Prescription recorded'
     }
 
@@ -190,12 +191,12 @@ export default function PrescriptionHistory({
       ['Instructions', 'instructions'],
     ]
 
-    const duration = [
-      snapshotText(snapshot, 'duration_value'),
-      snapshotText(snapshot, 'duration_unit'),
-    ]
-      .filter(Boolean)
-      .join(' ')
+    const durationValue = snapshotText(snapshot, 'duration_value')
+    const durationUnit = snapshotText(snapshot, 'duration_unit')
+    const duration =
+      durationValue && durationUnit
+        ? `${durationValue} ${durationUnit}`
+        : ''
 
     return (
       <div
@@ -917,7 +918,7 @@ export default function PrescriptionHistory({
                     >
                       <div>
                         <strong>
-                          {getVersionTitle(version.operation)}
+                          {getVersionTitle(version.operation, version.supersedes_prescription_id)}
                         </strong>
                         <div
                           style={{
